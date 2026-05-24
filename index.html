@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ma cave à vin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Localbase -->
+  <script src="https://unpkg.com/localbase/dist/localbase.min.js"></script>
+
+  <!-- OCR IA locale (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <!-- jsPDF (export PDF) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#8b0000" />
+</head>
+
+<body class="light">
+
+  <!-- MENU OVERLAY -->
+  <div id="menuOverlay"></div>
+
+  <!-- MENU LATERAL -->
+  <nav id="sideMenu">
+    <h2>Menu</h2>
+    <div class="menuItem" data-screen="listView">📦 Ma cave</div>
+    <div class="menuItem" id="menuAddWine">➕ Ajouter une bouteille</div>
+    <div class="menuItem" data-screen="scanView">🤖 Scan IA</div>
+    <div class="menuItem" data-screen="statsView">📊 Statistiques</div>
+    <div class="menuItem" data-screen="alertsView">⏰ Alertes de garde</div>
+    <div class="menuItem" data-screen="shopView">🛒 Mode magasin</div>
+    <div class="menuItem" data-screen="inventoryView">📋 Inventaire rapide</div>
+    <div class="menuItem" data-screen="settingsView">⚙️ Paramètres</div>
+  </nav>
+
+  <!-- HEADER -->
+  <header>
+    <button id="menuBtn">☰</button>
+    <h1>Ma cave à vin</h1>
+    <button id="addBtn" class="btn">+ Ajouter</button>
+  </header>
+
+  <!-- CONTENU -->
+  <main>
+
+    <!-- CAVE -->
+    <section id="listView" class="screen visible">
+      <h2>Mes bouteilles</h2>
+
+      <!-- Recherche vocale -->
+      <button class="btn secondary" onclick="startVoiceSearch()">🎤 Recherche vocale</button>
+
+      <div id="wineList"></div>
+    </section>
+
+    <!-- FORMULAIRE -->
+    <section id="formView" class="screen"></section>
+
+    <!-- DETAIL -->
+    <section id="detailView" class="screen"></section>
+
+    <!-- SCAN IA -->
+    <section id="scanView" class="screen"></section>
+
+    <!-- STATISTIQUES -->
+    <section id="statsView" class="screen">
+      <h2>Statistiques</h2>
+      <button class="btn secondary" onclick="exportCellarPDF()">📄 Export PDF cave</button>
+      <div id="statsContent"></div>
+    </section>
+
+    <!-- ALERTES -->
+    <section id="alertsView" class="screen">
+      <h2>Alertes de garde</h2>
+      <div id="alertsContent"></div>
+    </section>
+
+    <!-- MODE MAGASIN -->
+    <section id="shopView" class="screen"></section>
+
+    <!-- INVENTAIRE RAPIDE -->
+    <section id="inventoryView" class="screen">
+      <h2>Inventaire rapide</h2>
+      <div id="inventoryContent"></div>
+    </section>
+
+    <!-- PARAMÈTRES -->
+    <section id="settingsView" class="screen">
+      <h2>Paramètres</h2>
+
+      <div class="card">
+        <h3>🌙 Mode sombre</h3>
+        <label>
+          <input type="checkbox" id="darkToggle" />
+          Activer le mode sombre
+        </label>
+      </div>
+
+      <div class="card">
+        <h3>🔔 Délai des notifications</h3>
+        <select id="notifDelay">
+          <option value="7">7 jours</option>
+          <option value="15">15 jours</option>
+          <option value="30">30 jours</option>
+        </select>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODULES JS -->
+  <script src="db.js"></script>
+  <script src="ui.js"></script>
+  <script src="settings.js"></script>
+  <script src="stats.js"></script>
+  <script src="alerts.js"></script>
+  <script src="shop.js"></script>
+  <script src="scan.js"></script>
+  <script src="pdf.js"></script>
+  <script src="voice.js"></script>
+  <script src="inventory.js"></script>
+  <script src="app.js"></script>
+
+  <!-- Service Worker PWA -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+
+</body>
+</html>

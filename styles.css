@@ -1,0 +1,231 @@
+/* ===========================
+   THEME GLOBAL
+=========================== */
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  background: #111;
+  color: #eee;
+  transition: background 0.3s, color 0.3s;
+}
+
+body.light {
+  background: #f5f5f5;
+  color: #222;
+}
+
+/* ===========================
+   HEADER
+=========================== */
+
+header {
+  padding: 0.7rem 1rem;
+  background: #222;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+body.light header {
+  background: #ddd;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+header button {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.6rem;
+  cursor: pointer;
+}
+
+/* ===========================
+   BOUTONS
+=========================== */
+
+.btn {
+  background: #8b0000;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn.secondary {
+  background: #444;
+}
+
+body.light .btn.secondary {
+  background: #ccc;
+  color: #000;
+}
+
+/* ===========================
+   CARTES
+=========================== */
+
+.card {
+  background: #1b1b1b;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+body.light .card {
+  background: #fff;
+  color: #000;
+}
+
+/* ===========================
+   PILLS
+=========================== */
+
+.pill {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  background: #333;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  margin-right: 0.3rem;
+}
+
+body.light .pill {
+  background: #ddd;
+  color: #000;
+}
+
+/* ===========================
+   LIENS
+=========================== */
+
+.link {
+  color: #ffb347;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ===========================
+   MENU LATERAL
+=========================== */
+
+#menuOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  z-index: 9;
+}
+
+#sideMenu {
+  position: fixed;
+  top: 0;
+  left: -260px;
+  width: 260px;
+  height: 100%;
+  background: #1b1b1b;
+  padding: 1rem;
+  transition: 0.3s;
+  z-index: 10;
+  overflow-y: auto;
+}
+
+body.light #sideMenu {
+  background: #fff;
+  color: #000;
+}
+
+#sideMenu h2 {
+  margin-top: 0;
+}
+
+.menuItem {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #333;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.menuItem:hover {
+  color: #ffb347;
+}
+
+body.light .menuItem {
+  border-bottom: 1px solid #ccc;
+}
+
+/* ===========================
+   ECRANS
+=========================== */
+
+.screen {
+  display: none;
+}
+
+.screen.visible {
+  display: block;
+}
+
+/* ===========================
+   FORMULAIRES
+=========================== */
+
+label {
+  display: block;
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #111;
+  color: #f5f5f5;
+  font-size: 0.9rem;
+}
+
+body.light input,
+body.light select,
+body.light textarea {
+  background: #fff;
+  color: #000;
+  border: 1px solid #ccc;
+}
+
+textarea {
+  min-height: 60px;
+}
+
+/* ===========================
+   LAYOUT
+=========================== */
+
+main {
+  padding: 1rem;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media (min-width: 600px) {
+  main {
+    max-width: 600px;
+    margin: auto;
+  }
+}
