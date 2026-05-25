@@ -2,6 +2,9 @@
 // db.js — Couche base de données (LocalBase / IndexedDB)
 // ============================================================
 
+if (typeof LocalBase === 'undefined') {
+  console.error('LocalBase non chargé — vérifiez votre connexion internet.');
+}
 const db = new LocalBase('wineCellar_v2');
 
 // Générer un ID unique

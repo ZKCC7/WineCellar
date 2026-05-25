@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <title>Ma Cave à Vin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/localbase/dist/localbase.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/grappe96.png" type="image/png">
   <meta name="theme-color" content="#8b0000">
@@ -30,9 +29,9 @@
     <button id="themeToggleBtn" aria-label="Thème">🌓</button>
   </div>
   <div class="settings-box">
-    <h4>🔑 Clé API Claude</h4>
-    <p class="settings-hint">Créez une clé sur console.anthropic.com</p>
-    <input type="password" id="aiApiKey" placeholder="sk-ant-..." autocomplete="off">
+    <h4>🔑 Clé API Gemini (gratuite)</h4>
+    <p class="settings-hint">Clé gratuite sur aistudio.google.com</p>
+    <input type="password" id="aiApiKey" placeholder="AIza..." autocomplete="off">
     <button id="btnSaveAiKey" class="btn" style="width:100%; margin-top:8px;">Enregistrer</button>
   </div>
   <div style="margin-top:16px;">
@@ -276,7 +275,10 @@
   </div>
 </div>
 
-<!-- Scripts -->
+<!-- Scripts CDN -->
+<script src="https://unpkg.com/localbase/dist/localbase.min.js"></script>
+
+<!-- Scripts app -->
 <script src="db.js"></script>
 <script src="ui.js"></script>
 <script src="ai.js"></script>

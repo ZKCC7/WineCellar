@@ -1,11 +1,12 @@
 // ============================================================
-// ai.js — Reconnaissance de vin via Claude (vision native)
+// ai.js — Reconnaissance de vin via Gemini Flash (gratuit)
+// Clé API : https://aistudio.google.com
 // ============================================================
 
-function getClaudeApiKey() {
-  const key = localStorage.getItem('claude_api_key');
-  if (!key || !key.trim().startsWith('sk-ant-')) {
-    alert('Veuillez configurer votre clé API Claude dans le menu (☰).\n\nCréez une clé sur console.anthropic.com');
+function getGeminiApiKey() {
+  const key = localStorage.getItem('gemini_api_key');
+  if (!key || !key.trim()) {
+    alert('Veuillez configurer votre clé API Gemini dans le menu (☰).\n\nClé gratuite sur : aistudio.google.com');
     return null;
   }
   return key.trim();
@@ -21,9 +22,9 @@ function fileToBase64(file) {
   });
 }
 
-// Appel Claude avec vision
+// Appel Gemini Flash avec vision
 async function analyserEtiquetteAvecClaude(imageFile) {
-  const apiKey = getClaudeApiKey();
+  const apiKey = getGeminiApiKey();
   if (!apiKey) return null;
 
   const base64 = await fileToBase64(imageFile);
@@ -40,42 +41,39 @@ Réponds UNIQUEMENT avec un objet JSON valide (pas de markdown, pas d'explicatio
   "appellation": "appellation (ex: Pauillac, Meursault...)",
   "region": "région viticole (ex: Bordeaux, Bourgogne...)",
   "country": "pays (ex: France, Italie...)",
-  "rating": "note sur 100 si visible sur l'étiquette, sinon null",
-  "ratingSource": "source de la note si visible, sinon null",
-  "drinkFrom": "année début apogée estimée si connue, sinon null",
-  "drinkTo": "année fin apogée estimée si connue, sinon null",
+  "rating": null,
+  "ratingSource": null,
+  "drinkFrom": "année début apogée estimée selon le type et millésime, sinon null",
+  "drinkTo": "année fin apogée estimée selon le type et millésime, sinon null",
   "notes": "informations complémentaires intéressantes visibles sur l'étiquette"
 }
 
 Si une information n'est pas visible ou lisible, mets null pour ce champ.
-Estime le type de vin d'après la couleur de la bouteille ou les indices visuels si non précisé.`;
+Estime le type de vin d'après la couleur de la bouteille ou les indices visuels si non précisé.
+Estime drinkFrom et drinkTo d'après le millésime et le type de vin si tu les connais.`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-opus-4-5',
-        max_tokens: 1024,
-        messages: [{
-          role: 'user',
-          content: [
+        contents: [{
+          parts: [
             {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: mediaType,
+              inline_data: {
+                mime_type: mediaType,
                 data: base64
               }
             },
-            { type: 'text', text: prompt }
+            { text: prompt }
           ]
-        }]
+        }],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 1024
+        }
       })
     });
 
@@ -85,17 +83,17 @@ Estime le type de vin d'après la couleur de la bouteille ou les indices visuels
     }
 
     const data = await response.json();
-    const text = data.content?.[0]?.text || '';
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     // Nettoyer et parser le JSON
     const clean = text.replace(/```json|```/g, '').trim();
     return JSON.parse(clean);
 
   } catch (e) {
-    console.error('Erreur Claude API:', e);
+    console.error('Erreur Gemini API:', e);
     throw e;
   }
 }
 
 window.analyserEtiquetteAvecClaude = analyserEtiquetteAvecClaude;
-window.getClaudeApiKey = getClaudeApiKey;
+window.getGeminiApiKey = getGeminiApiKey;

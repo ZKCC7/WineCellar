@@ -79,14 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnSaveAiKey')?.addEventListener('click', () => {
     const val = document.getElementById('aiApiKey').value.trim();
     if (!val) { alert('Clé vide.'); return; }
-    localStorage.setItem('claude_api_key', val);
+    localStorage.setItem('gemini_api_key', val);
     document.getElementById('aiApiKey').value = '';
     closeMenu();
     alert('✓ Clé API enregistrée !');
   });
 
   // Pré-remplir clé masquée si existante
-  const existingKey = localStorage.getItem('claude_api_key');
+  const existingKey = localStorage.getItem('gemini_api_key');
   if (existingKey) {
     document.getElementById('aiApiKey').placeholder = '✓ Clé enregistrée (modifiable)';
   }
