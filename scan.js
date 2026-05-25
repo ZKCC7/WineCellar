@@ -1,4 +1,10 @@
-// Nettoyage du texte OCR
+/* ============================================================
+   scan.js — Scan IA avec Tesseract.js
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   Nettoyage du texte OCR
+------------------------------------------------------------ */
 function nettoyerOCR(texte) {
   return texte
     .toLowerCase()
@@ -7,16 +13,24 @@ function nettoyerOCR(texte) {
     .filter(m => m.length > 2);
 }
 
-// Matching intelligent
+/* ------------------------------------------------------------
+   Matching intelligent avec ta base locale winesDB
+------------------------------------------------------------ */
 function trouverVin(motsOCR) {
   let meilleurVin = null;
   let meilleurScore = 0;
+
+  if (!Array.isArray(winesDB)) {
+    console.error("❌ winesDB introuvable ou invalide");
+    return null;
+  }
 
   winesDB.forEach(vin => {
     let score = 0;
     motsOCR.forEach(mot => {
       if (vin.motsCles.includes(mot)) score++;
     });
+
     if (score > meilleurScore) {
       meilleurScore = score;
       meilleurVin = vin;
@@ -26,7 +40,9 @@ function trouverVin(motsOCR) {
   return meilleurScore >= 2 ? meilleurVin : null;
 }
 
-// Affichage
+/* ------------------------------------------------------------
+   Affichage du résultat
+------------------------------------------------------------ */
 function afficherVin(vin) {
   document.getElementById("scanResult").innerHTML = `
     <p><strong>${vin.nom}</strong></p>
@@ -40,15 +56,24 @@ function afficherMessage(msg) {
   document.getElementById("scanResult").innerHTML = `<p>${msg}</p>`;
 }
 
-// OCR réel avec Tesseract.js
+/* ------------------------------------------------------------
+   OCR réel avec Tesseract.js
+------------------------------------------------------------ */
 async function faireOCR(imageFile) {
-  const { data } = await Tesseract.recognize(imageFile, "fra+eng", {
-    logger: m => console.log(m)
-  });
-  return data.text;
+  try {
+    const { data } = await Tesseract.recognize(imageFile, "fra+eng", {
+      logger: m => console.log(m)
+    });
+    return data.text;
+  } catch (err) {
+    console.error("❌ Erreur OCR :", err);
+    return "";
+  }
 }
 
-// Pipeline complet
+/* ------------------------------------------------------------
+   Pipeline complet
+------------------------------------------------------------ */
 async function analyserPhoto() {
   const input = document.getElementById("scanInput");
   const status = document.getElementById("scanText");
@@ -63,7 +88,7 @@ async function analyserPhoto() {
 
   try {
     const texteOCR = await faireOCR(file);
-    status.textContent = texteOCR;
+    status.textContent = texteOCR || "Aucun texte détecté.";
 
     const mots = nettoyerOCR(texteOCR);
     const vin = trouverVin(mots);
@@ -79,11 +104,11 @@ async function analyserPhoto() {
   }
 }
 
-// Bouton photo
+/* ------------------------------------------------------------
+   Gestion des boutons
+------------------------------------------------------------ */
 document.getElementById("scanBtn").addEventListener("click", () => {
   document.getElementById("scanInput").click();
 });
 
-// Lancement analyse quand fichier choisi
 document.getElementById("scanInput").addEventListener("change", analyserPhoto);
-  

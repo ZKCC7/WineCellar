@@ -16,8 +16,8 @@ const menuBtn = $("menuBtn");
 const menuOverlay = $("menuOverlay");
 const sideMenu = $("sideMenu");
 
-menuBtn.addEventListener("click", toggleMenu);
-menuOverlay.addEventListener("click", toggleMenu);
+if (menuBtn) menuBtn.addEventListener("click", toggleMenu);
+if (menuOverlay) menuOverlay.addEventListener("click", toggleMenu);
 
 function toggleMenu() {
   const isOpen = sideMenu.style.left === "0px";
@@ -61,14 +61,14 @@ document.querySelectorAll(".menuItem").forEach(item => {
 /* ------------------------------------------------------------
    BOUTON "Ajouter"
 ------------------------------------------------------------ */
-$("addBtn").addEventListener("click", () => {
+$("addBtn")?.addEventListener("click", () => {
   showAddForm();
 });
 
 /* ------------------------------------------------------------
    BOUTON "Ajouter" dans le menu
 ------------------------------------------------------------ */
-$("menuAddWine").addEventListener("click", () => {
+$("menuAddWine")?.addEventListener("click", () => {
   toggleMenu();
   showAddForm();
 });

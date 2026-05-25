@@ -7,8 +7,12 @@
 ------------------------------------------------------------ */
 const darkToggle = document.getElementById("darkToggle");
 
-// Charger l'état au démarrage
 (function initDarkMode() {
+  if (!darkToggle) {
+    console.warn("⚠️ Élément #darkToggle introuvable.");
+    return;
+  }
+
   const saved = localStorage.getItem("darkMode");
 
   if (saved === "1") {
@@ -20,31 +24,37 @@ const darkToggle = document.getElementById("darkToggle");
   }
 })();
 
-// Changer le mode sombre
-darkToggle.addEventListener("change", () => {
-  const enabled = darkToggle.checked;
+if (darkToggle) {
+  darkToggle.addEventListener("change", () => {
+    const enabled = darkToggle.checked;
 
-  if (enabled) {
-    document.body.classList.remove("light");
-    localStorage.setItem("darkMode", "1");
-  } else {
-    document.body.classList.add("light");
-    localStorage.setItem("darkMode", "0");
-  }
-});
+    if (enabled) {
+      document.body.classList.remove("light");
+      localStorage.setItem("darkMode", "1");
+    } else {
+      document.body.classList.add("light");
+      localStorage.setItem("darkMode", "0");
+    }
+  });
+}
 
 /* ------------------------------------------------------------
    DÉLAI DES NOTIFICATIONS
 ------------------------------------------------------------ */
 const notifDelaySelect = document.getElementById("notifDelay");
 
-// Charger la valeur sauvegardée
 (function initNotifDelay() {
+  if (!notifDelaySelect) {
+    console.warn("⚠️ Élément #notifDelay introuvable.");
+    return;
+  }
+
   const saved = localStorage.getItem("notifDelay");
   notifDelaySelect.value = saved || "30";
 })();
 
-// Sauvegarder quand l’utilisateur change
-notifDelaySelect.addEventListener("change", () => {
-  localStorage.setItem("notifDelay", notifDelaySelect.value);
-});
+if (notifDelaySelect) {
+  notifDelaySelect.addEventListener("change", () => {
+    localStorage.setItem("notifDelay", notifDelaySelect.value);
+  });
+}

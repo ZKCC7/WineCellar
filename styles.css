@@ -2,9 +2,9 @@
    THEME GLOBAL
 =========================== */
 html, body {
-    
-    padding: 0;
-    background-color: #111;
+  margin: 0;
+  padding: 0;
+  background-color: #111;
 }
 
 body {
@@ -69,16 +69,17 @@ body.light .btn.secondary {
   background: #ccc;
   color: #000;
 }
+
 .btn-scan {
-    display: block;
-    background: #c62828;
-    color: white;
-    padding: 12px;
-    text-align: center;
-    border-radius: 6px;
-    margin-bottom: 20px;
-    text-decoration: none;
-    font-weight: bold;
+  display: block;
+  background: #c62828;
+  color: white;
+  padding: 12px;
+  text-align: center;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  text-decoration: none;
+  font-weight: bold;
 }
 
 /* ===========================

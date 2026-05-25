@@ -9,7 +9,12 @@ async function loadStats() {
   const wines = await dbGetAllWines();
   const statsDiv = document.getElementById("statsContent");
 
-  if (!wines.length) {
+  if (!statsDiv) {
+    console.warn("⚠️ Élément #statsContent introuvable.");
+    return;
+  }
+
+  if (!wines || wines.length === 0) {
     statsDiv.innerHTML = `
       <div class="card">
         Aucune bouteille pour l’instant.
@@ -21,15 +26,18 @@ async function loadStats() {
   /* -------------------------
      Total bouteilles
   ------------------------- */
-  const total = wines.reduce((sum, w) => sum + (w.purchase?.quantity || 1), 0);
+  const total = wines.reduce(
+    (sum, w) => sum + (w.purchase?.quantity ?? 1),
+    0
+  );
 
   /* -------------------------
      Répartition par couleur
   ------------------------- */
   const byColor = {};
   wines.forEach(w => {
-    const c = w.identity.color || "Inconnue";
-    byColor[c] = (byColor[c] || 0) + (w.purchase?.quantity || 1);
+    const c = w.identity?.color || "Inconnue";
+    byColor[c] = (byColor[c] || 0) + (w.purchase?.quantity ?? 1);
   });
 
   /* -------------------------
@@ -37,8 +45,8 @@ async function loadStats() {
   ------------------------- */
   const byRegion = {};
   wines.forEach(w => {
-    const r = w.identity.region || "Inconnue";
-    byRegion[r] = (byRegion[r] || 0) + (w.purchase?.quantity || 1);
+    const r = w.identity?.region || "Inconnue";
+    byRegion[r] = (byRegion[r] || 0) + (w.purchase?.quantity ?? 1);
   });
 
   /* -------------------------

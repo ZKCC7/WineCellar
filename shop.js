@@ -8,6 +8,11 @@
 (function initShop() {
   const shopView = document.getElementById("shopView");
 
+  if (!shopView) {
+    console.warn("⚠️ Élément #shopView introuvable.");
+    return;
+  }
+
   shopView.innerHTML = `
     <h2>Mode magasin</h2>
 
@@ -24,15 +29,23 @@
     <div id="shopResult"></div>
   `;
 
-  document.getElementById("shopSearchBtn").addEventListener("click", shopSearch);
+  const btn = document.getElementById("shopSearchBtn");
+  if (btn) btn.addEventListener("click", shopSearch);
 })();
 
 /* ------------------------------------------------------------
    Recherche dans la cave
 ------------------------------------------------------------ */
 async function shopSearch() {
-  const input = document.getElementById("shopSearchInput").value.trim();
+  const inputEl = document.getElementById("shopSearchInput");
   const resultDiv = document.getElementById("shopResult");
+
+  if (!inputEl || !resultDiv) {
+    console.error("❌ shopSearch : éléments introuvables");
+    return;
+  }
+
+  const input = inputEl.value.trim();
 
   if (!input) {
     resultDiv.innerHTML = `
@@ -57,8 +70,8 @@ async function shopSearch() {
   resultDiv.innerHTML = `
     <div class="card">
       <h3>✔️ Tu as déjà ce vin</h3>
-      <p><b>${match.identity.cuvee}</b> (${match.identity.vintage})</p>
-      <p>${match.identity.producer}</p>
+      <p><b>${match.identity?.cuvee || "Sans nom"}</b> (${match.identity?.vintage || "?"})</p>
+      <p>${match.identity?.producer || "Producteur inconnu"}</p>
 
       <button class="btn secondary" onclick="showDetail('${match.id}')">
         Voir la fiche
