@@ -5,121 +5,285 @@
   <title>Ma Cave à Vin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/localbase/dist/localbase.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/grappe96.png" type="image/png">
   <meta name="theme-color" content="#8b0000">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header>
-  <button id="menuBtn">☰</button>
-  <h1>Ma Cave à Vin</h1>
-  <button id="headerAddBtn" onclick="switchView('view-add')">＋</button>
+  <button id="menuBtn" aria-label="Menu">☰</button>
+  <h1>🍷 Ma Cave</h1>
+  <button id="headerAddBtn" aria-label="Ajouter" onclick="openAddForm()">＋</button>
 </header>
 
 <div id="menuOverlay" style="display:none;"></div>
 
 <nav id="sideMenu">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-    <h2 style="margin:0; font-size:1.25rem;">Options</h2>
-    <button id="themeToggleBtn" style="background:none; border:none; font-size:1.3rem; cursor:pointer;">🌓</button>
+  <div class="side-menu-header">
+    <h2>Options</h2>
+    <button id="themeToggleBtn" aria-label="Thème">🌓</button>
   </div>
-  <div class="settings-box" style="margin-bottom:15px; padding:12px; border-radius:8px;">
-    <h4 style="margin:0 0 8px 0; color:#60a5fa;">🔑 Clé API Gemini</h4>
-    <input type="password" id="aiApiKey" placeholder="Clé API..." style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-color); background:var(--background-app); color:var(--text-primary);">
+  <div class="settings-box">
+    <h4>🔑 Clé API Claude</h4>
+    <p class="settings-hint">Créez une clé sur console.anthropic.com</p>
+    <input type="password" id="aiApiKey" placeholder="sk-ant-..." autocomplete="off">
     <button id="btnSaveAiKey" class="btn" style="width:100%; margin-top:8px;">Enregistrer</button>
+  </div>
+  <div style="margin-top:16px;">
+    <button class="btn btn-outline" style="width:100%;" onclick="injectDemoData()">🧪 Données de test</button>
   </div>
 </nav>
 
-<main style="padding-bottom:80px;">
+<main>
 
-  <!-- Vue Liste -->
+  <!-- Vue Cave (Liste) -->
   <section id="view-list" class="screen visible">
-    <div style="padding:15px;">
-      <h2>Ma Cave</h2>
-      <div id="wineList"></div>
+    <div class="view-content">
+      <div class="view-toolbar">
+        <input type="search" id="listSearch" placeholder="Rechercher..." oninput="filterWineList()">
+        <select id="listFilter" onchange="filterWineList()">
+          <option value="">Tous types</option>
+          <option value="Rouge">Rouge</option>
+          <option value="Blanc">Blanc</option>
+          <option value="Rosé">Rosé</option>
+          <option value="Champagne">Champagne</option>
+          <option value="Mousseux">Mousseux</option>
+          <option value="Doux">Doux</option>
+        </select>
+      </div>
+      <div id="wineList"><p class="empty-msg">Aucune bouteille. Appuyez sur ＋ pour en ajouter.</p></div>
     </div>
   </section>
 
   <!-- Vue Inventaire -->
   <section id="view-inventory" class="screen">
-    <div style="padding:15px;">
-      <h2>Inventaire</h2>
-      <div id="inventoryContent"></div>
+    <div class="view-content">
+      <div class="view-toolbar">
+        <input type="search" id="invSearch" placeholder="Rechercher...">
+        <select id="invFilterType">
+          <option value="">Tous types</option>
+          <option value="Rouge">Rouge</option>
+          <option value="Blanc">Blanc</option>
+          <option value="Rosé">Rosé</option>
+          <option value="Champagne">Champagne</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table id="inventoryTable">
+          <thead>
+            <tr>
+              <th>Cuvée</th>
+              <th>Type</th>
+              <th>Millésime</th>
+              <th>Apogée</th>
+              <th>Qté</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </section>
 
   <!-- Vue Alertes -->
   <section id="view-alerts" class="screen">
-    <div style="padding:15px;">
-      <h2>Alertes</h2>
+    <div class="view-content">
+      <h2 class="view-title">Alertes &amp; Apogées</h2>
       <div id="alertsContent"></div>
     </div>
   </section>
 
-  <!-- Vue Achats -->
-  <section id="view-shop" class="screen">
-    <div style="padding:15px;">
-      <h2>Achats</h2>
-      <div id="shopContent"></div>
-    </div>
-  </section>
+  <!-- Vue Scanner / Ajouter -->
+  <section id="view-add" class="screen">
+    <div class="view-content">
+      <h2 class="view-title" id="formTitle">Ajouter une bouteille</h2>
 
-  <!-- Vue Scanner -->
-  <section id="view-scan" class="screen">
-    <div style="padding:15px; text-align:center;">
-      <h2>Scanner</h2>
-      <label for="scanInput" class="btn">📸 Scanner une étiquette</label>
-      <input type="file" id="scanInput" accept="image/*" capture="environment" style="display:none;">
-      <div id="scanResult" style="margin-top:20px;"></div>
+      <!-- Zone scan photo -->
+      <div class="scan-zone" id="scanZone">
+        <div id="scanPreview">
+          <span class="scan-icon">📷</span>
+          <p>Photographier l'étiquette</p>
+        </div>
+        <label for="scanInput" class="btn btn-scan">📸 Prendre une photo</label>
+        <input type="file" id="scanInput" accept="image/*" capture="environment" style="display:none;">
+        <div id="scanStatus"></div>
+      </div>
+
+      <!-- Formulaire -->
+      <form id="wineForm" onsubmit="submitWineForm(event)">
+        <input type="hidden" id="wineId">
+
+        <div class="form-section">
+          <h3 class="form-section-title">Identité</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wineCuvee">Cuvée *</label>
+              <input type="text" id="wineCuvee" placeholder="Ex: Château Margaux" required>
+            </div>
+            <div class="form-group">
+              <label for="wineDomain">Domaine / Producteur</label>
+              <input type="text" id="wineDomain" placeholder="Ex: Château Margaux">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wineVintage">Millésime</label>
+              <input type="number" id="wineVintage" placeholder="Ex: 2018" min="1900" max="2099">
+            </div>
+            <div class="form-group">
+              <label for="wineType">Type</label>
+              <select id="wineType">
+                <option value="Rouge">Rouge</option>
+                <option value="Blanc">Blanc</option>
+                <option value="Rosé">Rosé</option>
+                <option value="Champagne">Champagne</option>
+                <option value="Mousseux">Mousseux</option>
+                <option value="Doux">Doux</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wineAppellation">Appellation</label>
+              <input type="text" id="wineAppellation" placeholder="Ex: Pauillac">
+            </div>
+            <div class="form-group">
+              <label for="wineRegion">Région</label>
+              <input type="text" id="wineRegion" placeholder="Ex: Bordeaux">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="wineCountry">Pays</label>
+            <input type="text" id="wineCountry" placeholder="France" value="France">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Notes &amp; Apogée</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wineRating">Note internautes (sur 100)</label>
+              <input type="number" id="wineRating" placeholder="Ex: 91" min="0" max="100">
+            </div>
+            <div class="form-group">
+              <label for="wineRatingSource">Source de la note</label>
+              <input type="text" id="wineRatingSource" placeholder="Ex: Wine Spectator, Vivino…">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wineDrinkFrom">Boire à partir de</label>
+              <input type="number" id="wineDrinkFrom" placeholder="Ex: 2025" min="1900" max="2099">
+            </div>
+            <div class="form-group">
+              <label for="wineDrinkTo">Boire jusqu'à (apogée)</label>
+              <input type="number" id="wineDrinkTo" placeholder="Ex: 2035" min="1900" max="2099">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="wineNotes">Mes notes personnelles</label>
+            <textarea id="wineNotes" placeholder="Arômes, accords mets-vins, impressions..." rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Cave</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wineQty">Quantité</label>
+              <input type="number" id="wineQty" value="1" min="0">
+            </div>
+            <div class="form-group">
+              <label for="wineSize">Format</label>
+              <select id="wineSize">
+                <option value="37.5cl">Demi (37.5cl)</option>
+                <option value="75cl" selected>Bouteille (75cl)</option>
+                <option value="150cl">Magnum (150cl)</option>
+                <option value="300cl">Double Magnum (300cl)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wineLocation">Emplacement</label>
+              <input type="text" id="wineLocation" placeholder="Ex: Étagère A3">
+            </div>
+            <div class="form-group">
+              <label for="winePrice">Prix payé (€)</label>
+              <input type="number" id="winePrice" placeholder="Ex: 25" min="0" step="0.01">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" onclick="resetForm()">Annuler</button>
+          <button type="submit" class="btn">💾 Enregistrer</button>
+        </div>
+      </form>
     </div>
   </section>
 
   <!-- Vue Stats -->
   <section id="view-stats" class="screen">
-    <div style="padding:15px;">
-      <h2>Statistiques</h2>
+    <div class="view-content">
+      <h2 class="view-title">Statistiques</h2>
       <div id="statsContent"></div>
     </div>
   </section>
 
-  <!-- Vue Ajouter -->
-  <section id="view-add" class="screen">
-    <div style="padding:15px;">
-      <h2>Ajouter une bouteille</h2>
-      <form id="wineForm">
-        <input type="text" id="wineCuvee" placeholder="Cuvée" required>
-        <input type="text" id="wineDomain" placeholder="Domaine">
-        <button type="button" id="btnAiFill" onclick="assistantRemplirFormulaire()">Remplir par IA</button>
-        <button type="submit">Enregistrer</button>
-      </form>
-    </div>
-  </section>
 </main>
 
 <nav id="bottomNav">
-  <button class="navItem active" data-screen="view-list">📦 Ma cave</button>
-  <button class="navItem" data-screen="view-inventory">🍾 Inventaire</button>
-  <button class="navItem" data-screen="view-alerts">🔔 Alertes</button>
-  <button class="navItem" data-screen="view-shop">🛒 Achats</button>
-  <button class="navItem" data-screen="view-scan">📷 Scanner</button>
-  <button class="navItem" data-screen="view-stats">📊 Stats</button>
+  <button class="navItem active" data-screen="view-list">
+    <span class="nav-icon">🍷</span>
+    <span>Ma cave</span>
+  </button>
+  <button class="navItem" data-screen="view-inventory">
+    <span class="nav-icon">📋</span>
+    <span>Inventaire</span>
+  </button>
+  <button class="navItem" data-screen="view-alerts">
+    <span class="nav-icon">🔔</span>
+    <span>Alertes</span>
+  </button>
+  <button class="navItem" data-screen="view-add">
+    <span class="nav-icon">➕</span>
+    <span>Ajouter</span>
+  </button>
+  <button class="navItem" data-screen="view-stats">
+    <span class="nav-icon">📊</span>
+    <span>Stats</span>
+  </button>
 </nav>
+
+<!-- Modal confirmation après scan -->
+<div id="scanModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>🍷 Vin reconnu</h3>
+    <div id="scanModalPreview"></div>
+    <div id="scanModalFields"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeScanModal()">✕ Ignorer</button>
+      <button class="btn" onclick="acceptScanResult()">✓ Ajouter ce vin</button>
+    </div>
+  </div>
+</div>
 
 <!-- Scripts -->
 <script src="db.js"></script>
 <script src="ui.js"></script>
-<script src="scan.js"></script>
 <script src="ai.js"></script>
+<script src="scan.js"></script>
 <script src="stats.js"></script>
 <script src="alerts.js"></script>
-<script src="shop.js"></script>
+<script src="inventory.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

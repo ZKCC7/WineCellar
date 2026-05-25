@@ -1,98 +1,101 @@
-// Variable globale pour l'image scannée
-let scannedImageFile = window.scannedImageFile || null;
+// ============================================================
+// ai.js — Reconnaissance de vin via Claude (vision native)
+// ============================================================
 
-// Récupérer la clé API
-function getGeminiApiKey() {
-  const key = localStorage.getItem("gemini_api_key");
-  if (!key || key.trim() === "") {
-    alert("Veuillez configurer votre clé API Gemini dans les réglages.");
+function getClaudeApiKey() {
+  const key = localStorage.getItem('claude_api_key');
+  if (!key || !key.trim().startsWith('sk-ant-')) {
+    alert('Veuillez configurer votre clé API Claude dans le menu (☰).\n\nCréez une clé sur console.anthropic.com');
     return null;
   }
   return key.trim();
 }
 
-// Appeler l'API Gemini
-async function appelerGemini(prompt) {
-  const apiKey = getGeminiApiKey();
+// Convertir un File en base64
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Appel Claude avec vision
+async function analyserEtiquetteAvecClaude(imageFile) {
+  const apiKey = getClaudeApiKey();
   if (!apiKey) return null;
 
+  const base64 = await fileToBase64(imageFile);
+  const mediaType = imageFile.type || 'image/jpeg';
+
+  const prompt = `Tu es un expert en vins. Analyse cette photo d'étiquette de vin et extrais toutes les informations visibles.
+
+Réponds UNIQUEMENT avec un objet JSON valide (pas de markdown, pas d'explication), avec ces champs :
+{
+  "cuvee": "nom de la cuvée ou du vin",
+  "domain": "nom du domaine ou producteur",
+  "vintage": "millésime (année uniquement, ex: 2018)",
+  "type": "Rouge | Blanc | Rosé | Champagne | Mousseux | Doux",
+  "appellation": "appellation (ex: Pauillac, Meursault...)",
+  "region": "région viticole (ex: Bordeaux, Bourgogne...)",
+  "country": "pays (ex: France, Italie...)",
+  "rating": "note sur 100 si visible sur l'étiquette, sinon null",
+  "ratingSource": "source de la note si visible, sinon null",
+  "drinkFrom": "année début apogée estimée si connue, sinon null",
+  "drinkTo": "année fin apogée estimée si connue, sinon null",
+  "notes": "informations complémentaires intéressantes visibles sur l'étiquette"
+}
+
+Si une information n'est pas visible ou lisible, mets null pour ce champ.
+Estime le type de vin d'après la couleur de la bouteille ou les indices visuels si non précisé.`;
+
   try {
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
+        model: 'claude-opus-4-5',
+        max_tokens: 1024,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: mediaType,
+                data: base64
+              }
+            },
+            { type: 'text', text: prompt }
+          ]
+        }]
       })
     });
 
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${response.status}`);
+    }
+
     const data = await response.json();
-    if (data.error) {
-      console.error("Erreur API Gemini :", data.error);
-      return null;
-    }
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
-  } catch (err) {
-    console.error("Erreur de connexion API :", err);
-    return null;
+    const text = data.content?.[0]?.text || '';
+
+    // Nettoyer et parser le JSON
+    const clean = text.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+
+  } catch (e) {
+    console.error('Erreur Claude API:', e);
+    throw e;
   }
 }
 
-// Remplir le formulaire avec l'IA
-async function assistantRemplirFormulaire() {
-  const btn = document.getElementById('btnAiFill');
-  if (!btn) return;
-
-  const originalText = btn.innerHTML;
-  btn.innerHTML = "Analyse en cours...";
-  btn.disabled = true;
-
-  try {
-    if (!window.scannedImageFile) {
-      throw new Error("Veuillez d'abord scanner une étiquette.");
-    }
-
-    const { data: { text } } = await Tesseract.recognize(
-      window.scannedImageFile,
-      'eng+fra'
-    );
-
-    const prompt = `
-      Analyse ce texte d'étiquette de vin et extrais en JSON :
-      - cuvee
-      - domain
-      - vintage
-      - type
-      - appellation
-      - region
-      Texte : ${text}
-    `;
-
-    const reponseJson = await appelerGemini(prompt);
-    if (!reponseJson) throw new Error("Impossible d'analyser l'étiquette.");
-
-    const data = JSON.parse(reponseJson);
-    const fields = {
-      wineCuvee: data.cuvee || "",
-      wineDomain: data.domain || "",
-      wineVintage: data.vintage || "",
-    };
-
-    for (const [fieldId, value] of Object.entries(fields)) {
-      const field = document.getElementById(fieldId);
-      if (field) field.value = value;
-    }
-
-    alert("Formulaire rempli avec succès !");
-  } catch (error) {
-    console.error("Erreur IA :", error);
-    alert(`Erreur : ${error.message}`);
-  } finally {
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-  }
-}
-
-// Exposition globale
-window.assistantRemplirFormulaire = assistantRemplirFormulaire;
-window.scannedImageFile = scannedImageFile;
+window.analyserEtiquetteAvecClaude = analyserEtiquetteAvecClaude;
+window.getClaudeApiKey = getClaudeApiKey;

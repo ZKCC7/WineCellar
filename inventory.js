@@ -1,102 +1,59 @@
-/* ============================================================
-   inventory.js — Version complète, corrigée et compatible
-   ============================================================ */
+// ============================================================
+// inventory.js — Vue inventaire (tableau)
+// ============================================================
 
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("invSearch");
-  const filterType = document.getElementById("invFilterType");
-
-  if (searchInput) searchInput.addEventListener("input", filterAndDisplayInventory);
-  if (filterType) filterType.addEventListener("change", filterAndDisplayInventory);
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('invSearch')?.addEventListener('input', loadInventory);
+  document.getElementById('invFilterType')?.addEventListener('change', loadInventory);
 });
 
-/* ------------------------------------------------------------
-   Charger et afficher l'inventaire global
------------------------------------------------------------- */
 async function loadInventory() {
-  await filterAndDisplayInventory();
-}
-
-/* ------------------------------------------------------------
-   Filtrage et injection des données dans le tableau
------------------------------------------------------------- */
-async function filterAndDisplayInventory() {
-  const tbody = document.getElementById("inventoryTableBody");
+  const tbody = document.getElementById('inventoryTableBody');
   if (!tbody) return;
 
   const wines = await dbGetAllWines();
-  
-  // Récupération sécurisée des valeurs des inputs
-  const searchInput = document.getElementById("invSearch");
-  const query = (searchInput && searchInput.value) ? searchInput.value.toLowerCase() : "";
-  
-  const filterType = document.getElementById("invFilterType");
-  const selectedType = (filterType && filterType.value) ? filterType.value : "";
+  const query = (document.getElementById('invSearch')?.value || '').toLowerCase();
+  const type  = document.getElementById('invFilterType')?.value || '';
 
-  // Filtrage combiné (sans ?. pour éviter les erreurs)
   const filtered = wines.filter(w => {
     const id = w.identity || {};
-    const cuvee = (id.cuvee || "").toLowerCase();
-    const domain = (id.domain || "").toLowerCase();
-    const type = id.type || "";
-    
-    const textMatch = cuvee.includes(query) || domain.includes(query);
-    const typeMatch = (selectedType === "" || type === selectedType);
-    
-    return textMatch && typeMatch;
+    const textOk = !query ||
+      (id.cuvee || '').toLowerCase().includes(query) ||
+      (id.domain || '').toLowerCase().includes(query);
+    const typeOk = !type || id.type === type;
+    return textOk && typeOk;
   });
 
-  // Construction du HTML du tableau
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">Aucun vin trouvé.</td></tr>';
+    return;
+  }
+
   tbody.innerHTML = filtered.map(w => {
-    const id = w.identity || {};
-    return `
-    <tr>
-      <td>${id.cuvee || "Inconnu"}</td>
-      <td>${id.type || "-"}</td>
-      <td>${w.quantity || 0}</td>
-      <td style="text-align:right;">
-        <button onclick="editWine('${w.id}')">✏️</button>
+    const id   = w.identity || {};
+    const ag   = w.aging || {};
+    const rat  = w.rating || {};
+    const year = new Date().getFullYear();
+    const drinkTo = ag.drinkTo ? parseInt(ag.drinkTo) : null;
+
+    let apogeeStyle = '';
+    if (drinkTo) {
+      if (drinkTo < year)       apogeeStyle = 'color:#ef4444;';
+      else if (drinkTo - year <= 2) apogeeStyle = 'color:#6fcf97;';
+    }
+
+    return `<tr>
+      <td><strong>${id.cuvee || '—'}</strong><br><small style="color:var(--text-muted)">${id.domain || ''}</small></td>
+      <td><span class="badge ${winePillClass(id.type)}">${id.type || '—'}</span></td>
+      <td>${id.vintage || '—'}</td>
+      <td style="${apogeeStyle}">${ag.drinkTo ? `~${ag.drinkTo}` : '—'}</td>
+      <td><strong>${w.quantity || 0}</strong></td>
+      <td>
+        <button class="btn-ghost" onclick="openEditForm('${w.id}')" title="Modifier">✏️</button>
+        <button class="btn-ghost" onclick="confirmDelete('${w.id}')" title="Supprimer">🗑</button>
       </td>
     </tr>`;
-  }).join("");
+  }).join('');
 }
 
-/* ------------------------------------------------------------
-   Édition d'une bouteille (Remplissage formulaire)
------------------------------------------------------------- */
-async function editWine(id) {
-  const wine = await dbGetWine(id);
-  if (!wine) return;
-
-  const idData = wine.identity || {};
-  const agingData = wine.aging || {};
-
-  // Remplissage des champs (sécurisé)
-  if (document.getElementById("wineCuvee")) document.getElementById("wineCuvee").value = idData.cuvee || "";
-  if (document.getElementById("wineDomain")) document.getElementById("wineDomain").value = idData.domain || "";
-  if (document.getElementById("wineVintage")) document.getElementById("wineVintage").value = idData.vintage || "";
-  if (document.getElementById("wineType")) document.getElementById("wineType").value = idData.type || "Rouge";
-  if (document.getElementById("wineAppellation")) document.getElementById("wineAppellation").value = idData.appellation || "";
-  if (document.getElementById("wineRegion")) document.getElementById("wineRegion").value = idData.region || "";
-  if (document.getElementById("wineCountry")) document.getElementById("wineCountry").value = idData.country || "France";
-  if (document.getElementById("wineQty")) document.getElementById("wineQty").value = wine.quantity || 1;
-  if (document.getElementById("wineSize")) document.getElementById("wineSize").value = wine.size || "75cl";
-  if (document.getElementById("wineLocation")) document.getElementById("wineLocation").value = wine.location || "";
-  if (document.getElementById("wineBarcode")) document.getElementById("wineBarcode").value = wine.barcode || "";
-  if (document.getElementById("wineDrinkFrom")) document.getElementById("wineDrinkFrom").value = agingData.drinkFrom || "";
-  if (document.getElementById("wineDrinkTo")) document.getElementById("wineDrinkTo").value = agingData.drinkTo || "";
-
-  // Navigation
-  if (document.getElementById("formTitle")) document.getElementById("formTitle").innerText = "Modifier la bouteille";
-  if (typeof switchView === "function") switchView("view-add");
-}
-
-/* ------------------------------------------------------------
-   Suppression
------------------------------------------------------------- */
-async function deleteWineFromInv(id) {
-  if (confirm("Voulez-vous vraiment retirer cette référence de l'inventaire ?")) {
-    await dbDeleteWine(id);
-    filterAndDisplayInventory();
-  }
-}
+window.loadInventory = loadInventory;

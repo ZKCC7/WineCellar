@@ -1,47 +1,74 @@
+// ============================================================
+// alerts.js — Alertes d'apogée
+// ============================================================
+
 async function loadAlerts() {
-  const alertsContent = document.getElementById('alertsContent');
-  if (!alertsContent) return;
+  const container = document.getElementById('alertsContent');
+  if (!container) return;
 
-  try {
-    const db = new LocalBase('wineCellar');
-    const wines = await db.collection('wines').get();
-    const today = new Date();
-    const delayDays = parseInt(localStorage.getItem('settingDelay')) || 30;
+  const wines = await dbGetAllWines();
+  const year  = new Date().getFullYear();
 
-    if (!wines || wines.length === 0) {
-      alertsContent.innerHTML = '<p>Aucune bouteille dans votre cave.</p>';
-      return;
+  const late    = [];
+  const nowWin  = [];
+  const soon    = [];
+
+  wines.forEach(w => {
+    const ag = w.aging || {};
+    const id = w.identity || {};
+    if (!ag.drinkTo) return;
+    const to   = parseInt(ag.drinkTo);
+    const from = ag.drinkFrom ? parseInt(ag.drinkFrom) : null;
+    const name = id.cuvee || 'Vin inconnu';
+
+    if (to < year) {
+      late.push({ wine: w, name, to, from });
+    } else if (to <= year + 2) {
+      nowWin.push({ wine: w, name, to, from });
+    } else if (to <= year + 5) {
+      soon.push({ wine: w, name, to, from });
     }
+  });
 
-    const alerts = wines.filter(wine => {
-      if (!wine.drinkTo) return false;
-      const drinkToDate = new Date(wine.drinkTo);
-      const diffDays = (drinkToDate - today) / (1000 * 60 * 60 * 24);
-      return diffDays <= delayDays && diffDays >= 0;
-    });
-
-    if (alerts.length === 0) {
-      alertsContent.innerHTML = '<p>Aucune alerte de consommation.</p>';
-      return;
-    }
-
-    alertsContent.innerHTML = `
-      <div class="card">
-        <h3>Alertes (${alerts.length})</h3>
-        <ul>
-          ${alerts.map(wine => `
-            <li>
-              <strong>${wine.cuvee || 'Inconnu'}</strong> (${wine.domain || 'Inconnu'}) -
-              À consommer avant le ${new Date(wine.drinkTo).toLocaleDateString('fr-FR')}
-            </li>
-          `).join('')}
-        </ul>
-      </div>
-    `;
-  } catch (error) {
-    console.error("Erreur lors du chargement des alertes :", error);
-    alertsContent.innerHTML = '<p>Erreur lors du chargement des alertes.</p>';
+  if (!late.length && !nowWin.length && !soon.length) {
+    container.innerHTML = '<p class="empty-msg">🎉 Aucune alerte.<br>Tous vos vins sont dans leur fenêtre optimale.</p>';
+    return;
   }
+
+  let html = '';
+
+  if (late.length) {
+    html += `<h3 style="color:#ef4444; font-family:'Playfair Display',serif; margin:0 0 10px;">⚠️ Apogée dépassée</h3>`;
+    html += late.map(a => alertCard(a, 'late')).join('');
+  }
+
+  if (nowWin.length) {
+    html += `<h3 style="color:#6fcf97; font-family:'Playfair Display',serif; margin:16px 0 10px;">✅ À boire maintenant</h3>`;
+    html += nowWin.map(a => alertCard(a, '')).join('');
+  }
+
+  if (soon.length) {
+    html += `<h3 style="color:#f2994a; font-family:'Playfair Display',serif; margin:16px 0 10px;">⏳ Approche de l'apogée</h3>`;
+    html += soon.map(a => alertCard(a, 'warning')).join('');
+  }
+
+  container.innerHTML = html;
+}
+
+function alertCard({ wine, name, to, from }, cssClass) {
+  const id = wine.identity || {};
+  const qty = wine.quantity || 0;
+  return `
+    <div class="alert-card ${cssClass}" onclick="openEditForm('${wine.id}')" style="cursor:pointer;">
+      <h4>${name}</h4>
+      <p>
+        ${id.domain ? id.domain + ' · ' : ''}
+        ${id.vintage ? 'Millésime ' + id.vintage + ' · ' : ''}
+        Apogée ${from ? from + '–' : ''}${to}
+        · ${qty} bouteille${qty > 1 ? 's' : ''}
+      </p>
+    </div>
+  `;
 }
 
 window.loadAlerts = loadAlerts;
