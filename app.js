@@ -1,52 +1,42 @@
-/* ===========================================================
-   app.js — Routage et Initialisation Globale des Événements
-   =========================================================== */
-
-function setActiveTab(viewId) {
-  const viewToTabMap = {
-    "view-list": "listView",
-    "view-inventory": "inventoryView",
-    "view-alerts": "alertsView",
-    "view-shop": "shopView",
-    "view-scan": "scanView",
-    "view-stats": "statsView",
-    "view-add": "" 
-  };
-
-  const activeTabName = viewToTabMap[viewId];
-
-  document.querySelectorAll(".navItem").forEach(tabBtn => {
-    if (tabBtn.dataset.screen === activeTabName) {
-      tabBtn.classList.add("active");
-    } else {
-      tabBtn.classList.remove("active");
-    }
-  });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  // Liaison des clics des onglets inférieurs
-  document.querySelectorAll(".navItem").forEach(item => {
-    item.addEventListener("click", () => {
-      const targetScreen = item.dataset.screen;
-      if (!targetScreen) return;
-
-      const screenMapping = {
-        "listView": "view-list",
-        "inventoryView": "view-inventory",
-        "alertsView": "view-alerts",
-        "shopView": "view-shop",
-        "scanView": "view-scan",
-        "statsView": "view-stats"
-      };
-
-      const viewId = screenMapping[targetScreen];
-      if (viewId && typeof switchView === "function") {
-        window.switchView(viewId);
+// Initialisation de l'application
+document.addEventListener('DOMContentLoaded', () => {
+  // Sauvegarder la clé API
+  const btnSaveAiKey = document.getElementById('btnSaveAiKey');
+  if (btnSaveAiKey) {
+    btnSaveAiKey.addEventListener('click', () => {
+      const apiKey = document.getElementById('aiApiKey').value;
+      if (apiKey.trim()) {
+        localStorage.setItem('gemini_api_key', apiKey);
+        alert('Clé API enregistrée avec succès !');
+      } else {
+        alert('Veuillez entrer une clé API valide.');
       }
     });
-  });
+  }
 
-  // Premier chargement : Affichage de la cave par défaut
-  if (typeof renderWineList === "function") renderWineList();
+  // Sauvegarder le délai d'alerte
+  const btnSaveSettings = document.getElementById('btnSaveSettings');
+  if (btnSaveSettings) {
+    btnSaveSettings.addEventListener('click', () => {
+      const delay = document.getElementById('settingDelay').value;
+      if (delay) {
+        localStorage.setItem('settingDelay', delay);
+        alert('Délai enregistré avec succès !');
+      }
+    });
+  }
+
+  // Charger les vins (exemple)
+  async function loadWineList() {
+    const db = new LocalBase('wineCellar');
+    const wines = await db.collection('wines').get();
+    const wineList = document.getElementById('wineList');
+    if (wineList) {
+      wineList.innerHTML = wines.length === 0
+        ? '<p>Aucune bouteille enregistrée.</p>'
+        : `<ul>${wines.map(wine => `<li>${wine.cuvee} (${wine.domain})</li>`).join('')}</ul>`;
+    }
+  }
+
+  loadWineList();
 });
