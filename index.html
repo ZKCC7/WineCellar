@@ -1,158 +1,625 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Ma cave à vin</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <title>Ma Cave à Vin (PWA)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#5c1d24">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ==========================================================================
+       DESIGN SYSTEM & VARIABLES
+       ========================================================================== */
+    :root {
+      --primary: #6b1d2f;         /* Bordeaux élégant */
+      --primary-light: #f5ebec;
+      --primary-hover: #541422;
+      --secondary: #e6c687;       /* Doré/Champagne subtil */
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --bg-app: #f9fafb;
+      --bg-card: #ffffff;
+      --border-color: #e5e7eb;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      /* Urgences alertes */
+      --urgency-high: #9b1c1c;
+      --urgency-high-bg: #fde8e8;
+      --urgency-med: #92400e;
+      --urgency-med-bg: #fef3c7;
+      --urgency-low: #0288d1;
+      --urgency-low-bg: #e1f5fe;
+    }
 
-  <!-- Localbase -->
-  <script src="https://unpkg.com/localbase/dist/localbase.min.js"></script>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  <!-- OCR IA locale (CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding-bottom: 80px; /* Espace pour la barre de navigation mobile */
+    }
 
-  <!-- jsPDF (export PDF) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    /* ==========================================================================
+       STRUCTURE & LAYOUT
+       ========================================================================== */
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#8b0000" />
+    header h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .section-view {
+      display: none; /* Géré par app.js */
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .section-view h2 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: var(--primary);
+      font-weight: 700;
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ==========================================================================
+       NAVIGATION TABLET & MOBILE RESPONSIVE
+       ========================================================================== */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 4px;
+      z-index: 100;
+      box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+    }
+
+    nav button span.icon {
+      font-size: 1.3rem;
+    }
+
+    nav button.active {
+      color: var(--primary);
+      font-weight: 700;
+      background-color: var(--primary-light);
+    }
+
+    @media (min-width: 768px) {
+      body { padding-bottom: 0; }
+      nav {
+        position: static;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        gap: 8px;
+      }
+      nav button {
+        color: white;
+        flex-direction: row;
+        font-size: 0.9rem;
+        padding: 8px 16px;
+      }
+      nav button.active {
+        background-color: rgba(255,255,255,0.2);
+        color: white;
+      }
+    }
+
+    /* ==========================================================================
+       BOUTONS & FORMULAIRES UNIVERSAL STYLES
+       ========================================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--border-color); color: var(--text-main); }
+    .btn-secondary:hover { background: #d1d5db; }
+    .btn-danger { background: #dc2626; color: white; }
+    .btn-danger:hover { background: #b91c1c; }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    input[type="text"], input[type="number"], input[type="date"], select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      background: #fff;
+      color: var(--text-main);
+      transition: var(--transition);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    fieldset {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 20px;
+      background: #fafafa;
+    }
+
+    legend {
+      padding: 0 8px;
+      font-weight: 600;
+      color: var(--primary);
+      font-size: 0.9rem;
+    }
+
+    /* ==========================================================================
+       COMPOSANTS : CARTES, GRILLES, ET TABLEAUX
+       ========================================================================== */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    /* Grille Responsive Générique */
+    .grid-auto {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    /* Listes / Tableaux */
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background-color: #f3f4f6;
+      color: var(--text-main);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background-color: #fafafa; }
+
+    /* ==========================================================================
+       ALERTE ET DESIGN DE LA PAGE D'ACCUEIL / ALERTS
+       ========================================================================== */
+    .wine-alert-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: var(--transition);
+    }
+    .wine-alert-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .card-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .wine-alert-card.urgency-high { border-left: 5px solid var(--urgency-high); }
+    .wine-alert-card.urgency-high .card-badge { background: var(--urgency-high-bg); color: var(--urgency-high); }
+    .wine-alert-card.urgency-med { border-left: 5px solid var(--urgency-med); }
+    .wine-alert-card.urgency-med .card-badge { background: var(--urgency-med-bg); color: var(--urgency-med); }
+    .wine-alert-card.urgency-low { border-left: 5px solid var(--urgency-low); }
+    .wine-alert-card.urgency-low .card-badge { background: var(--urgency-low-bg); color: var(--urgency-low); }
+
+    .card-actions-inline {
+      display: flex;
+      border-top: 1px solid var(--border-color);
+      background: #f9fafb;
+    }
+    .card-actions-inline button {
+      flex: 1; padding: 10px; background: none; border: none; font-size: 0.85rem; font-weight: 500; cursor: pointer; color: var(--text-muted); transition: var(--transition);
+    }
+    .card-actions-inline button:first-child { border-right: 1px solid var(--border-color); }
+    .card-actions-inline button:hover { background: #f3f4f6; color: var(--text-main); }
+
+    /* Actions globales en haut de section */
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* Scanner View Fix */
+    #scannerInteractive {
+      width: 100%;
+      max-width: 480px;
+      margin: 15px auto;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: #000;
+      aspect-ratio: 4/3;
+      position: relative;
+    }
+    #scannerInteractive video { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Stats Flex/Grid layout */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-box {
+      background: white;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      text-align: center;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+    }
+    .stat-box .num { font-size: 2rem; font-weight: 700; color: var(--primary); }
+    .stat-box .label { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+  </style>
 </head>
+<body>
 
-<body class="light">
-
-  <!-- MENU OVERLAY -->
-  <div id="menuOverlay"></div>
-
-  <!-- MENU LATERAL -->
-  <nav id="sideMenu">
-    <h2>Menu</h2>
-    <div class="menuItem" data-screen="listView">📦 Ma cave</div>
-    <div class="menuItem" id="menuAddWine">➕ Ajouter une bouteille</div>
-    <div class="menuItem" data-screen="scanView">🤖 Scan IA</div>
-    <div class="menuItem" data-screen="statsView">📊 Statistiques</div>
-    <div class="menuItem" data-screen="alertsView">⏰ Alertes de garde</div>
-    <div class="menuItem" data-screen="shopView">🛒 Mode magasin</div>
-    <div class="menuItem" data-screen="inventoryView">📋 Inventaire rapide</div>
-    <div class="menuItem" data-screen="settingsView">⚙️ Paramètres</div>
-  </nav>
-
-  <!-- HEADER -->
   <header>
-    <button id="menuBtn">☰</button>
-    <h1>Ma cave à vin</h1>
-    <button id="addBtn" class="btn">+ Ajouter</button>
+    <h1><span>🍷</span> Cave à Vin</h1>
+    <nav id="mainNav">
+      <button data-target="view-alerts" class="active"><span class="icon">🔔</span><span>Alertes</span></button>
+      <button data-target="view-inventory"><span class="icon">🍾</span><span>Mon Inventaire</span></button>
+      <button data-target="view-add"><span class="icon">➕</span><span>Ajouter</span></button>
+      <button data-target="view-shop"><span class="icon">🛒</span><span>Liste d'achats</span></button>
+      <button data-target="view-stats"><span class="icon">📊</span><span>Stats</span></button>
+      <button data-target="view-settings"><span class="icon">⚙️</span><span>Réglages</span></button>
+    </nav>
   </header>
 
-  <!-- CONTENU -->
   <main>
-
-    <!-- CAVE -->
-    <section id="listView" class="screen visible">
-      <h2>Mes bouteilles</h2>
-
-      <!-- Recherche vocale -->
-      <button class="btn secondary" onclick="startVoiceSearch()">🎤 Recherche vocale</button>
-
-      <div id="wineList"></div>
-    </section>
-
-    <!-- FORMULAIRE -->
-    <section id="formView" class="screen">
-      <h2>Ajouter une bouteille</h2>
-
-      <a href="#" id="openScanFromForm" class="btn">📸 Scan IA</a>
-
-      <div id="formContent"></div>
-    </section>
-
-    <!-- DETAIL -->
-    <section id="detailView" class="screen"></section>
-
-    <!-- SCAN IA -->
-    <section id="scanView" class="screen">
-      <h2>Scan IA de bouteille</h2>
-
-      <input type="file" id="scanInput" accept="image/*" capture="camera" style="display:none" />
-      <button class="btn" id="scanBtn">📸 Prendre une photo</button>
-
-      <div id="scanPreview"></div>
-
-      <h3>Texte détecté</h3>
-      <pre id="scanText"></pre>
-
-      <h3>Résultat trouvé</h3>
-      <div id="scanResult"></div>
-    </section>
-
-    <!-- STATISTIQUES -->
-    <section id="statsView" class="screen">
-      <h2>Statistiques</h2>
-      <button class="btn secondary" onclick="exportCellarPDF()">📄 Export PDF cave</button>
-      <div id="statsContent"></div>
-    </section>
-
-    <!-- ALERTES -->
-    <section id="alertsView" class="screen">
+    <section id="view-alerts" class="section-view" style="display:block;">
       <h2>Alertes de garde</h2>
-      <div id="alertsContent"></div>
+      <div id="alertsContent">Chargement des alertes...</div>
     </section>
 
-    <!-- MODE MAGASIN -->
-    <section id="shopView" class="screen"></section>
-
-    <!-- INVENTAIRE RAPIDE -->
-    <section id="inventoryView" class="screen">
-      <h2>Inventaire rapide</h2>
-      <div id="inventoryContent"></div>
-    </section>
-
-    <!-- PARAMÈTRES -->
-    <section id="settingsView" class="screen">
-      <h2>Paramètres</h2>
-
-      <div class="card">
-        <h3>🌙 Mode sombre</h3>
-        <label>
-          <input type="checkbox" id="darkToggle" />
-          Activer le mode sombre
-        </label>
-      </div>
-
-      <div class="card">
-        <h3>🔔 Délai des notifications</h3>
-        <select id="notifDelay">
-          <option value="7">7 jours</option>
-          <option value="15">15 jours</option>
-          <option value="30">30 jours</option>
+    <section id="view-inventory" class="section-view">
+      <h2>Mon Inventaire</h2>
+      <div class="action-bar">
+        <input type="text" id="invSearch" placeholder="Rechercher une cuvée, un domaine..." style="flex:1; max-width:400px;">
+        <select id="invFilterType" style="max-width: 150px;">
+          <option value="">Tous les types</option>
+          <option value="Rouge">Rouge</option>
+          <option value="Blanc">Blanc</option>
+          <option value="Rosé">Rosé</option>
+          <option value="Effervescent">Effervescent</option>
+          <option value="Doux/Muté">Doux/Muté</option>
         </select>
+        <button class="btn btn-secondary" id="btnExportPDF">📄 Exporter PDF</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Cuvée / Domaine</th>
+              <th>Type</th>
+              <th>Millésime</th>
+              <th>Quantité</th>
+              <th>Garde</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody">
+            </tbody>
+        </table>
       </div>
     </section>
 
+    <section id="view-add" class="section-view">
+      <h2 id="formTitle">Ajouter une bouteille</h2>
+      
+      <div class="card" style="max-width: 650px; margin: 0 auto;">
+        <div class="action-bar" style="justify-content: center; margin-bottom: 20px;">
+          <button class="btn btn-secondary" id="btnScanBarcode">📷 Scanner un code-barres</button>
+        </div>
+
+        <div id="scannerArea" style="display:none; text-align:center; margin-bottom:20px;">
+          <div id="scannerInteractive"></div>
+          <button class="btn btn-danger" id="btnStopScan" style="margin-top:10px;">Arrêter le scan</button>
+        </div>
+
+        <form id="wineForm">
+          <input type="hidden" id="wineId">
+
+          <fieldset>
+            <legend>Identité du Vin</legend>
+            <div class="form-group">
+              <label for="wineCuvee">Nom de la cuvée *</label>
+              <input type="text" id="wineCuvee" required placeholder="Ex: Les Granits">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="wineDomain">Domaine / Producteur</label>
+                <input type="text" id="wineDomain" placeholder="Ex: Chapoutier">
+              </div>
+              <div class="form-group">
+                <label for="wineVintage">Millésime</label>
+                <input type="number" id="wineVintage" placeholder="2020" min="1900" max="2100">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="wineType">Type de vin</label>
+                <select id="wineType">
+                  <option value="Rouge">Rouge</option>
+                  <option value="Blanc">Blanc</option>
+                  <option value="Rosé">Rosé</option>
+                  <option value="Effervescent">Effervescent</option>
+                  <option value="Doux/Muté">Doux/Muté</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="wineAppellation">Appellation</label>
+                <input type="text" id="wineAppellation" placeholder="Ex: Saint-Joseph">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="wineRegion">Région</label>
+                <input type="text" id="wineRegion" placeholder="Ex: Vallée du Rhône">
+              </div>
+              <div class="form-group">
+                <label for="wineCountry">Pays</label>
+                <input type="text" id="wineCountry" value="France">
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Stock & Emplacement</legend>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="wineQty">Quantité en stock *</label>
+                <input type="number" id="wineQty" value="1" min="0" required>
+              </div>
+              <div class="form-group">
+                <label for="wineSize">Contenance</label>
+                <select id="wineSize">
+                  <option value="75cl">Bouteille Standard (75cl)</option>
+                  <option value="1.5L">Magnum (1.5L)</option>
+                  <option value="37.5cl">Demie (37.5cl)</option>
+                  <option value="Autres">Autre format</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="wineLocation">Emplacement (Cave / Étagère)</label>
+                <input type="text" id="wineLocation" placeholder="Ex: Rangée A, Étagère 3">
+              </div>
+              <div class="form-group">
+                <label for="wineBarcode">Code-barres associé</label>
+                <input type="text" id="wineBarcode" placeholder="Pas de code-barres">
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Période de Garde</legend>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="wineDrinkFrom">Prêt à boire (Année)</label>
+                <input type="number" id="wineDrinkFrom" placeholder="2025" min="1900" max="2100">
+              </div>
+              <div class="form-group">
+                <label for="wineDrinkTo">Date limite de garde *</label>
+                <input type="date" id="wineDrinkTo" required>
+              </div>
+            </div>
+          </fieldset>
+
+          <div style="display: flex; gap: 12px; margin-top: 10px;">
+            <button type="submit" class="btn btn-primary" style="flex:2;">Enregistrer la bouteille</button>
+            <button type="button" class="btn btn-secondary" id="btnCancelForm" style="flex:1;">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="view-shop" class="section-view">
+      <h2>Liste d'achats / Idées de réapprovisionnement</h2>
+      <div class="card" style="max-width: 500px; margin: 0 auto 20px auto;">
+        <form id="shopForm">
+          <div class="form-group">
+            <label for="shopItemText">Nom du vin ou idée d'achat</label>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="shopItemText" required placeholder="Ex: Chablis Grand Cru à racheter..." style="flex:1;">
+              <button type="submit" class="btn btn-primary">Ajouter</button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <ul id="shopListContainer" style="list-style:none;">
+          </ul>
+      </div>
+    </section>
+
+    <section id="view-stats" class="section-view">
+      <h2>Statistiques de la cave</h2>
+      <div class="stats-container">
+        <div class="stat-box">
+          <div class="num" id="statTotalQty">0</div>
+          <div class="label">Bouteilles au total</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="statTotalCuvees">0</div>
+          <div class="label">Cuvées différentes</div>
+        </div>
+      </div>
+      <div class="grid-auto">
+        <div class="card">
+          <h3>Répartition par couleur</h3>
+          <div id="statsColorsBreakdown" style="margin-top:12px;"></div>
+        </div>
+        <div class="card">
+          <h3>Top Régions</h3>
+          <div id="statsRegionsBreakdown" style="margin-top:12px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-settings" class="section-view">
+      <h2>Réglages de l'application</h2>
+      <div class="card" style="max-width: 500px; margin: 0 auto;">
+        <div class="form-group">
+          <label for="settingDelay">Délai avant alerte de fin de garde (en jours)</label>
+          <input type="number" id="settingDelay" value="30" min="1">
+        </div>
+        <button class="btn btn-primary" id="btnSaveSettings" style="width:100%; margin-bottom:20px;">Sauvegarder les préférences</button>
+        
+        <hr style="border:none; border-top:1px solid var(--border-color); margin:20px 0;">
+        
+        <h3>Données locales</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">Ces boutons écrasent ou vident la base de données intégrée de votre navigateur (IndexedDB).</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button class="btn btn-secondary" id="btnInjectDemo">⚡ Injecter des données de démo</button>
+          <button class="btn btn-danger" id="btnClearDb">⚠️ Purger toute la base</button>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- MODULES JS -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
   <script src="db.js"></script>
-  <script src="ui.js"></script>
-  <script src="settings.js"></script>
-  <script src="stats.js"></script>
   <script src="alerts.js"></script>
-  <script src="shop.js"></script>
-  <script src="scan.js"></script>
-  <script src="pdf.js"></script>
-  <script src="voice.js"></script>
   <script src="inventory.js"></script>
+  <script src="scan.js"></script>
+  <script src="shop.js"></script>
+  <script src="stats.js"></script>
+  <script src="settings.js"></script>
+  <script src="pdf.js"></script>
   <script src="app.js"></script>
-
-  <!-- Service Worker PWA -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js");
-    }
-  </script>
-
 </body>
 </html>

@@ -1,81 +1,72 @@
 /* ============================================================
-   shop.js — Mode magasin (vérifier si tu as déjà un vin)
+   shop.js — Gestion de la liste de courses / réapprovisionnement
    ============================================================ */
 
-/* ------------------------------------------------------------
-   Initialisation de l’écran
------------------------------------------------------------- */
-(function initShop() {
-  const shopView = document.getElementById("shopView");
+document.addEventListener("DOMContentLoaded", () => {
+  const shopForm = document.getElementById("shopForm");
+  if (shopForm) {
+    shopForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = document.getElementById("shopItemText");
+      if (!input || !input.value.trim()) return;
 
-  if (!shopView) {
-    console.warn("⚠️ Élément #shopView introuvable.");
-    return;
+      const itemText = input.value.trim();
+      await addShopItem(itemText);
+      input.value = ""; // Vider le champ de saisie
+      await loadShopList(); // Rafraîchir l'UI
+    });
   }
-
-  shopView.innerHTML = `
-    <h2>Mode magasin</h2>
-
-    <div class="card">
-      <p>Entre un nom de vin pour vérifier si tu l’as déjà dans ta cave.</p>
-
-      <label>Nom du vin
-        <input id="shopSearchInput" placeholder="Ex : Don Giovanni, Sangiovese..." />
-      </label>
-
-      <button class="btn" id="shopSearchBtn">Rechercher</button>
-    </div>
-
-    <div id="shopResult"></div>
-  `;
-
-  const btn = document.getElementById("shopSearchBtn");
-  if (btn) btn.addEventListener("click", shopSearch);
-})();
+});
 
 /* ------------------------------------------------------------
-   Recherche dans la cave
+   Charger et dessiner la liste d'achats
 ------------------------------------------------------------ */
-async function shopSearch() {
-  const inputEl = document.getElementById("shopSearchInput");
-  const resultDiv = document.getElementById("shopResult");
+async function loadShopList() {
+  const container = document.getElementById("shopListContainer");
+  if (!container) return;
 
-  if (!inputEl || !resultDiv) {
-    console.error("❌ shopSearch : éléments introuvables");
-    return;
-  }
+  const items = await dbGetShopItems();
 
-  const input = inputEl.value.trim();
-
-  if (!input) {
-    resultDiv.innerHTML = `
-      <div class="card">
-        Merci d’entrer un nom de vin.
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.9rem;">
+        🛒 Votre liste d'achats est vide.
       </div>
     `;
     return;
   }
 
-  const match = await dbFindSimilarWine(input);
-
-  if (!match) {
-    resultDiv.innerHTML = `
-      <div class="card">
-        ❌ Tu n’as pas ce vin dans ta cave.
-      </div>
-    `;
-    return;
-  }
-
-  resultDiv.innerHTML = `
-    <div class="card">
-      <h3>✔️ Tu as déjà ce vin</h3>
-      <p><b>${match.identity?.cuvee || "Sans nom"}</b> (${match.identity?.vintage || "?"})</p>
-      <p>${match.identity?.producer || "Producteur inconnu"}</p>
-
-      <button class="btn secondary" onclick="showDetail('${match.id}')">
-        Voir la fiche
+  container.innerHTML = items.map(item => `
+    <li style="display:flex; justify-content:between; align-items:center; padding:12px; border-bottom:1px solid var(--border-color); gap:12px;">
+      <span style="flex:1; font-size:0.95rem; color:var(--text-main); font-weight:500;">
+        💡 ${escapeHTML(item.text)}
+      </span>
+      <button class="btn btn-danger" style="padding:6px 10px; font-size:0.8rem;" onclick="deleteShopItemFromUI('${item.id}')">
+        🗑️ Retirer
       </button>
-    </div>
-  `;
+    </li>
+  `).join("");
+}
+
+/* ------------------------------------------------------------
+   Contrôleurs d'actions
+------------------------------------------------------------ */
+async function addShopItem(text) {
+  const newItem = {
+    id: "shop-" + Date.now(),
+    text: text
+  };
+  await dbSaveShopItem(newItem);
+}
+
+async function deleteShopItemFromUI(id) {
+  await dbDeleteShopItem(id);
+  await loadShopList();
+}
+
+/* Utilitaire de sécurité anti-XSS simple pour l'injection HTML */
+function escapeHTML(str) {
+  return str.replace(/[&<>'"]/g, 
+    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+  );
 }
