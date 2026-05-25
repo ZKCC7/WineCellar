@@ -57,14 +57,19 @@ async function scanAnalyze() {
 
   resultDiv.innerHTML = `<div class="card">Analyse OCR en cours…</div>`;
 
-  const { data } = await Tesseract.recognize(imageURL, "eng", {
+  // OCR en FRANÇAIS
+  const { data } = await Tesseract.recognize(imageURL, "fra", {
     logger: m => console.log(m)
   });
 
   const text = data.text.toLowerCase();
   console.log("OCR:", text);
 
-  const match = await dbFindSimilarWine(text);
+  // Matching simple dans winesDB
+  const match = winesDB.find(w =>
+    text.includes(w.nom.toLowerCase()) ||
+    w.motsCles?.some(k => text.includes(k.toLowerCase()))
+  );
 
   if (!match) {
     resultDiv.innerHTML = `
@@ -79,12 +84,8 @@ async function scanAnalyze() {
   resultDiv.innerHTML = `
     <div class="card">
       <h3>✔️ Vin reconnu</h3>
-      <p><b>${match.identity.cuvee}</b> (${match.identity.vintage})</p>
-      <p>${match.identity.producer}</p>
-
-      <button class="btn secondary" onclick="showDetail('${match.id}')">
-        Voir la fiche
-      </button>
+      <p><b>${match.nom}</b> (${match.annee})</p>
+      <p>${match.producteur}</p>
     </div>
   `;
 }

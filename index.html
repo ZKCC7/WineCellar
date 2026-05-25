@@ -67,7 +67,20 @@
     <section id="detailView" class="screen"></section>
 
     <!-- SCAN IA -->
-    <section id="scanView" class="screen"></section>
+    <section id="scanView" class="screen">
+      <h2>Scan IA de bouteille</h2>
+
+      <input type="file" id="scanInput" accept="image/*" capture="camera" style="display:none" />
+      <button class="btn" id="scanBtn">📸 Prendre une photo</button>
+
+      <div id="scanPreview"></div>
+
+      <h3>Texte détecté</h3>
+      <pre id="scanText"></pre>
+
+      <h3>Résultat trouvé</h3>
+      <div id="scanResult"></div>
+     </section>
 
     <!-- STATISTIQUES -->
     <section id="statsView" class="screen">
