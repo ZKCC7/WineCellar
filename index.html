@@ -217,33 +217,40 @@
       <div id="statsContent"></div>
     </section>
 
-    <section id="view-settings" class="screen">
-      <h2>⚙️ Paramètres</h2>
+    <section id="settingsView" class="screen">
+      <h2>Paramètres</h2>
+
       <div class="card">
-        <h3>🌙 Mode Sombre</h3>
-        <label style="display:flex; align-items:center; gap:10px; margin-top:10px; cursor:pointer;">
-          <input type="checkbox" id="darkToggle" style="width:auto; margin:0;"> Activer le mode sombre
+        <h3>🌙 Mode sombre</h3>
+        <label>
+          <input type="checkbox" id="darkToggle" />
+          Activer le mode sombre
         </label>
       </div>
+
       <div class="card">
-        <h3>🔔 Délai d'alerte</h3>
-        <div class="form-group" style="margin-top:8px;">
-          <select id="settingDelay">
-            <option value="7">7 jours avant échéance</option>
-            <option value="15">15 jours avant échéance</option>
-            <option value="30">30 jours avant échéance</option>
-            <option value="90">90 jours avant échéance</option>
-          </select>
-        </div>
-        <button id="btnSaveSettings" class="btn btn-primary" style="font-size:0.8rem; padding:8px 12px;">Sauvegarder le délai</button>
+        <h3>🔑 Assistant IA (Google Gemini)</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
+          Génère une clé gratuite sur <a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary);">Google AI Studio</a>. Elle sera stockée uniquement sur ton téléphone/navigateur.
+        </p>
+        <label for="aiApiKey" style="display:block; margin-bottom:5px; font-weight:500;">Clé API Gemini</label>
+        <input type="password" id="aiApiKey" placeholder="AIzaSy..." style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px;" />
+        <button type="button" class="btn" id="btnSaveAiKey" style="background: var(--primary); color: white; width: 100%;">Enregistrer la clé</button>
       </div>
-      <div class="card" style="border: 1px solid #fecaca;">
-        <h3 style="color:#dc2626;">⚠ Zone de danger</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin:4px 0 12px 0;">Ces actions écrasent ou suppriment vos données locales.</p>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button id="btnInjectDemo" class="btn" style="background:#ef4444; color:white; font-size:0.8rem; padding:8px 12px;">Injecter la démo</button>
-          <button id="btnClearDb" class="btn" style="background:#b91c1c; color:white; font-size:0.8rem; padding:8px 12px;">Vider la base</button>
-        </div>
+
+      <div class="card">
+        <h3>🔔 Délai des notifications</h3>
+        <select id="notifDelay">
+          <option value="7">7 jours</option>
+          <option value="15">15 jours</option>
+          <option value="30">30 jours</option>
+        </select>
+      </div>
+
+      <div class="card" style="margin-top: 20px; border-top: 1px solid #fee2e2;">
+        <h3 style="color:#b91c1c;">⚠️ Zone de danger</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">Cette action supprimera tout l'historique de votre cave.</p>
+        <button id="btnClearDb" style="background:#b91c1c; color:white; font-size:0.8rem; padding:8px 12px; border:none; border-radius:6px; cursor:pointer;">Vider la base</button>
       </div>
     </section>
 
@@ -251,6 +258,7 @@
 
   <nav id="bottomNav">
     <button class="navItem active" data-screen="listView"><span class="icon">📦</span><span>Ma cave</span></button>
+    <button type="button" id="btnAiFill" onclick="assistantRemplirFormulaire()" class="btn" style="background:#2563eb; color:white; width:100%; margin-bottom:15px;">🪄 Remplir par IA</button>
     <button class="navItem" data-screen="inventoryView"><span class="icon">🍾</span><span>Inventaire</span></button>
     <button class="navItem" data-screen="alertsView"><span class="icon">🔔</span><span>Alertes</span></button>
     <button class="navItem" data-screen="shopView"><span class="icon">🛒</span><span>Magasin</span></button>

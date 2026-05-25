@@ -74,4 +74,25 @@ async function injectDemoData() {
   for (const wine of demoWines) {
     await dbUpdateWine(wine); // Écrit ou écrase dans IndexedDB via db.js
   }
-}
+};
+/* ------------------------------------------------------------
+   GESTION DE LA CLÉ API GEMINI (LOCAL STORAGE)
+------------------------------------------------------------ */
+document.addEventListener("DOMContentLoaded", () => {
+  const apiKeyInput = document.getElementById("aiApiKey");
+  const saveKeyBtn = document.getElementById("btnSaveAiKey");
+
+  // Charger la clé existante au démarrage si elle est en mémoire
+  if (apiKeyInput) {
+    apiKeyInput.value = localStorage.getItem("gemini_api_key") || "";
+  }
+
+  // Sauvegarder la clé au clic sur le bouton
+  if (saveKeyBtn && apiKeyInput) {
+    saveKeyBtn.addEventListener("click", () => {
+      const key = apiKeyInput.value.trim();
+      localStorage.setItem("gemini_api_key", key);
+      alert("🔑 Clé API Gemini sauvegardée localement avec succès !");
+    });
+  }
+})
