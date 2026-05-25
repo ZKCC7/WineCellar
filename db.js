@@ -1,22 +1,29 @@
 // ============================================================
-// db.js — Couche base de données (LocalBase / IndexedDB)
+// db.js — IndexedDB via idb (embarqué, zéro CDN)
 // ============================================================
 
-if (typeof LocalBase === 'undefined') {
-  console.error('LocalBase non chargé — vérifiez votre connexion internet.');
-}
-const db = new LocalBase('wineCellar_v2');
+const DB_NAME = 'wineCellar_v3';
+const DB_VERSION = 1;
+const STORE = 'wines';
 
-// Générer un ID unique
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-// ── WINES CRUD ──
+function openDB() {
+  return idb.openDB(DB_NAME, DB_VERSION, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE, { keyPath: 'id' });
+      }
+    }
+  });
+}
 
 async function dbGetAllWines() {
   try {
-    return await db.collection('wines').get() || [];
+    const db = await openDB();
+    return await db.getAll(STORE) || [];
   } catch (e) {
     console.error('dbGetAllWines:', e);
     return [];
@@ -25,8 +32,8 @@ async function dbGetAllWines() {
 
 async function dbGetWine(id) {
   try {
-    const wines = await db.collection('wines').get();
-    return wines.find(w => w.id === id) || null;
+    const db = await openDB();
+    return await db.get(STORE, id) || null;
   } catch (e) {
     console.error('dbGetWine:', e);
     return null;
@@ -40,7 +47,8 @@ async function dbSaveWine(wine) {
       wine.createdAt = new Date().toISOString();
     }
     wine.updatedAt = new Date().toISOString();
-    await db.collection('wines').doc({ id: wine.id }).set(wine);
+    const db = await openDB();
+    await db.put(STORE, wine);
     return wine;
   } catch (e) {
     console.error('dbSaveWine:', e);
@@ -50,14 +58,13 @@ async function dbSaveWine(wine) {
 
 async function dbDeleteWine(id) {
   try {
-    await db.collection('wines').doc({ id }).delete();
+    const db = await openDB();
+    await db.delete(STORE, id);
   } catch (e) {
     console.error('dbDeleteWine:', e);
     throw e;
   }
 }
-
-// ── DEMO DATA ──
 
 async function injectDemoData() {
   const demos = [
