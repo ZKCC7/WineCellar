@@ -1,197 +1,160 @@
-/* ===========================
-   THEME GLOBAL
-=========================== */
-html, body {
-  margin: 0;
-  padding: 0;
-  background-color: #111;
-}
+/* ============================================================
+   styles.css — Thématique unifiée et Layout Responsive PWA
+   ============================================================ */
 
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background: #111;
-  color: #eee;
-  transition: background 0.3s, color 0.3s;
+:root {
+  --background-app: #111111;
+  --background-cards: #1e1e1e;
+  --border-color: #333333;
+  --text-primary: #eeeeee;
+  --text-muted: #aaaaaa;
+  --primary-brand: #8b0000;
+  --primary-hover: #541422;
 }
 
 body.light {
-  background: #f5f5f5;
-  color: #222;
+  --background-app: #f5f5f5;
+  --background-cards: #ffffff;
+  --border-color: #dddddd;
+  --text-primary: #222222;
+  --text-muted: #666666;
 }
 
-/* ===========================
-   HEADER
-=========================== */
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-app);
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  transition: background 0.2s, color 0.2s;
+}
 
 header {
-  padding: 0.7rem 1rem;
-  background: #222;
+  padding: 0.8rem 1rem;
+  background: var(--background-cards);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-body.light header {
-  background: #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
 header h1 {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
+  margin: 0;
 }
 
 header button {
   background: none;
   border: none;
   color: inherit;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   cursor: pointer;
 }
 
-/* ===========================
-   BOUTONS
-=========================== */
-
-.btn {
-  background: #8b0000;
-  color: #fff;
-  border: none;
-  padding: 0.6rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.btn.secondary {
-  background: #444;
-}
-
-body.light .btn.secondary {
-  background: #ccc;
-  color: #000;
-}
-
-.btn-scan {
-  display: block;
-  background: #c62828;
-  color: white;
-  padding: 12px;
-  text-align: center;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-/* ===========================
-   CARTES
-=========================== */
-
-.card {
-  background: #1b1b1b;
-  border-radius: 10px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-}
-
-body.light .card {
-  background: #fff;
-  color: #000;
-}
-
-/* ===========================
-   PILLS
-=========================== */
-
-.pill {
-  display: inline-block;
-  padding: 0.2rem 0.5rem;
-  background: #333;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  margin-right: 0.3rem;
-}
-
-body.light .pill {
-  background: #ddd;
-  color: #000;
-}
-
-/* ===========================
-   LIENS
-=========================== */
-
-.link {
-  color: #ffb347;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-/* ===========================
-   MENU LATERAL
-=========================== */
-
-#menuOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  z-index: 9;
-}
-
-/* ==========================================
-   CORRECTION DU MENU SIDEBAR (BANDE GAUCHE)
-   ========================================== */
+/* INTERFACE MENU HAMBURGER COULISSANT */
 #sideMenu {
   position: fixed;
   top: 0;
-  left: -270px; /* Légèrement augmenté pour être sûr qu'il sorte de l'écran */
-  width: 260px;
+  left: -280px;
+  width: 280px;
   height: 100%;
-  background: #1b1b1b;
-  padding: 1rem;
-  transition: transform 0.3s ease, visibility 0.3s;
-  z-index: 9999; /* Reste bien au-dessus de tout */
+  background: var(--background-cards);
+  border-right: 1px solid var(--border-color);
+  padding: 1.2rem;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
   overflow-y: auto;
   box-sizing: border-box;
-  visibility: hidden; /* Masque complètement la bande résiduelle */
 }
 
-/* Classe active qui sera gérée par le JavaScript */
 #sideMenu.open {
-  transform: translateX(270px);
-  visibility: visible;
+  transform: translateX(280px);
 }
 
-body.light #sideMenu {
-  background: #fff;
-  color: #000;
+.settings-box {
+  background: var(--background-app) !important;
+  border: 1px solid var(--border-color);
 }
 
-#sideMenu h2 {
-  margin-top: 0;
-}
-
-.menuItem {
-  padding: 0.7rem 0;
-  border-bottom: 1px solid #333;
+/* BOUTONS ET COMPOSANTS FORMULAIRES */
+.btn {
+  background: var(--primary-brand);
+  color: #ffffff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-family: inherit;
+  transition: background 0.2s;
 }
 
-.menuItem:hover {
-  color: #ffb347;
+.btn:hover {
+  background: var(--primary-hover);
 }
 
-body.light .menuItem {
-  border-bottom: 1px solid #ccc;
+.card {
+  background: var(--background-cards);
+  border: 1px solid var(--border-color);
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
 
-/* ===========================
-   ECRANS
-=========================== */
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 5px;
+  color: var(--text-primary);
+}
+
+/* BARRE DE NAVIGATION BASSE (MOBILE FIRST) */
+#bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 65px;
+  background: var(--background-cards);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 8;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.navItem {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  flex: 1;
+  height: 100%;
+}
+
+.navItem .icon {
+  font-size: 1.3rem;
+  margin-bottom: 2px;
+}
+
+.navItem.active {
+  color: var(--primary-brand);
+  font-weight: bold;
+}
+
+body.light .navItem.active {
+  color: #b91c1c;
+}
 
 .screen {
   display: none;
@@ -199,59 +162,4 @@ body.light .menuItem {
 
 .screen.visible {
   display: block;
-}
-
-/* ===========================
-   FORMULAIRES
-=========================== */
-
-label {
-  display: block;
-  margin-top: 0.6rem;
-  font-size: 0.85rem;
-}
-
-input, select, textarea {
-  width: 100%;
-  padding: 0.4rem 0.5rem;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background: #111;
-  color: #f5f5f5;
-  font-size: 0.9rem;
-}
-
-body.light input,
-body.light select,
-body.light textarea {
-  background: #fff;
-  color: #000;
-  border: 1px solid #ccc;
-}
-
-textarea {
-  min-height: 60px;
-}
-
-/* ===========================
-   LAYOUT
-=========================== */
-
-main {
-  padding: 1rem;
-}
-
-h2 {
-  margin-top: 0;
-}
-
-/* ===========================
-   RESPONSIVE
-=========================== */
-
-@media (min-width: 600px) {
-  main {
-    max-width: 600px;
-    margin: auto;
-  }
 }

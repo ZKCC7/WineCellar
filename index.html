@@ -11,7 +11,6 @@
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#6b1d2f" />
-  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,53 +19,67 @@
 <body>
 
   <header>
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <button id="menuBtn">☰</button>
-      <h1 style="margin: 0; font-weight: 700; font-size: 1.3rem;">🍇 Ma Cave Pro</h1>
-    </div>
-    <button onclick="switchView('view-add')" style="font-size: 1.4rem;">➕</button>
+    <button id="menuBtn">☰</button>
+    <h1>Ma Cave à Vin</h1>
+    <button id="headerAddBtn" onclick="switchView('view-add')">＋</button>
   </header>
 
-  <div id="menuOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9;"></div>
+  <div id="menuOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9;"></div>
   <nav id="sideMenu">
-    <h2 style="color: #ffb347; margin-bottom: 20px;">Options</h2>
-    <div class="menuItem" onclick="switchView('view-list')">📦 Ma cave</div>
-    <div class="menuItem" onclick="if(typeof exportCellarPDF === 'function') exportCellarPDF()">📄 Exporter la cave (PDF)</div>
-    <div class="menuItem" onclick="if(typeof startVoiceSearch === 'function') startVoiceSearch()">🎙️ Recherche vocale</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:10px;">
+      <h2 style="margin:0; font-size:1.3rem;">Options</h2>
+      <button id="themeToggleBtn" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:inherit;">🌓</button>
+    </div>
+    
+    <div style="margin-bottom:20px; background:#222; padding:12px; border-radius:8px;" class="settings-box">
+      <h4 style="margin:0 0 8px 0; color:#60a5fa; font-size:0.9rem;">🔑 Assistant Google Gemini</h4>
+      <input type="password" id="aiApiKey" placeholder="Clé API AIzaSy..." style="width:100%; padding:8px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; box-sizing:border-box; font-size:0.8rem;" />
+      <button id="btnSaveAiKey" style="width:100%; margin-top:8px; padding:6px; background:#10b981; border:none; color:white; border-radius:4px; font-size:0.8rem; cursor:pointer;">Enregistrer la clé</button>
+    </div>
+
+    <div style="margin-bottom:20px; background:#222; padding:12px; border-radius:8px;" class="settings-box">
+      <h4 style="margin:0 0 8px 0; color:#f59e0b; font-size:0.9rem;">🔔 Alertes de garde</h4>
+      <label style="font-size:0.75rem; color:#aaa;">Seuil de notification (jours) :</label>
+      <input type="number" id="settingDelay" style="width:100%; padding:6px; border-radius:4px; border:1px solid #444; background:#111; color:#fff; box-sizing:border-box; font-size:0.8rem; margin-top:4px;" />
+      <button id="btnSaveSettings" style="width:100%; margin-top:8px; padding:6px; background:#4f46e5; border:none; color:white; border-radius:4px; font-size:0.8rem; cursor:pointer;">Enregistrer le délai</button>
+    </div>
+
+    <div style="background:#222; padding:12px; border-radius:8px;" class="settings-box">
+      <h4 style="margin:0 0 8px 0; color:#ef4444; font-size:0.9rem;">⚠️ Base de données</h4>
+      <button id="btnInjectDemo" style="width:100%; padding:8px; background:#374151; color:white; border:none; border-radius:4px; font-size:0.8rem; margin-bottom:8px; cursor:pointer;">📥 Charger la Démo</button>
+      <button id="btnClearDb" style="width:100%; padding:8px; background:#dc2626; color:white; border:none; border-radius:4px; font-size:0.8rem; cursor:pointer;">⚠️ Réinitialiser la Cave</button>
+    </div>
   </nav>
 
-  <main style="padding-bottom: 70px;">
+  <main style="padding-bottom: 80px;">
     
     <section id="view-list" class="screen visible">
-      <div class="search-bar-container" style="padding: 12px 15px; display: flex; flex-direction: column; gap: 10px;">
-        <input type="text" id="mainSearch" placeholder="🔍 Rechercher un vin, une région, un domaine..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; box-sizing: border-box;" />
-        <button type="button" id="btnAiFill" onclick="assistantRemplirFormulaire()" class="btn" style="background:#2563eb; color:white; width:100%; padding: 11px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none;">🪄 Ajouter via l'assistant IA</button>
+      <div style="padding:15px;">
+        <h2>Ma Cave</h2>
+        <div id="wineList"></div>
       </div>
-      <div id="wineList" class="container"></div>
     </section>
 
     <section id="view-inventory" class="screen">
       <div style="padding:15px;">
-        <h2 style="margin-top:0;">Inventaire Détaillé</h2>
+        <h2>Inventaire Global</h2>
         <div style="display:flex; gap:10px; margin-bottom:15px;">
-          <input type="text" id="invSearch" placeholder="Filtrer le tableau..." style="flex:1; padding:8px; border-radius:6px; border:1px solid #444; background:#222; color:#fff;" />
-          <select id="invFilterType" style="padding:8px; border-radius:6px; border:1px solid #444; background:#222; color:#fff;">
-            <option value="">Tous les types</option>
-            <option value="Rouge">Rouge</option>
-            <option value="Blanc">Blanc</option>
-            <option value="Rosé">Rosé</option>
-            <option value="Effervescent">Effervescent</option>
+          <input type="text" id="invSearch" placeholder="Rechercher un vin, domaine..." style="flex:1; padding:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;" />
+          <select id="invFilterType" style="padding:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;">
+            <option value="">Tous</option>
+            <option value="Rouge">Rouges</option>
+            <option value="Blanc">Blancs</option>
+            <option value="Rosé">Rosés</option>
           </select>
         </div>
         <div style="overflow-x:auto;">
-          <table style="width:100%; border-collapse: collapse; font-size:0.9rem; text-align:left;">
+          <table style="width:100%; border-collapse:collapse; text-align:left;">
             <thead>
-              <tr style="border-bottom:2px solid #444; color:#aaa;">
-                <th style="padding:8px;">Vin</th>
-                <th style="padding:8px;">Type</th>
-                <th style="padding:8px;">Més.</th>
-                <th style="padding:8px;">Qté</th>
-                <th style="padding:8px;">Actions</th>
+              <tr style="border-bottom:2px solid #333;">
+                <th style="padding:10px;">Vin</th>
+                <th style="padding:10px;">Type</th>
+                <th style="padding:10px;">Qté</th>
+                <th style="padding:10px;">Actions</th>
               </tr>
             </thead>
             <tbody id="inventoryTableBody"></tbody>
@@ -77,17 +90,17 @@
 
     <section id="view-alerts" class="screen">
       <div style="padding:15px;">
-        <h2 style="margin-top:0;">Alertes de vieillissement</h2>
+        <h2>Alertes de Consommation</h2>
         <div id="alertsContent"></div>
       </div>
     </section>
 
     <section id="view-shop" class="screen">
       <div style="padding:15px;">
-        <h2 style="margin-top:0;">Liste de courses</h2>
-        <form id="shopForm" style="display:flex; gap:10px; margin-bottom:20px;">
-          <input type="text" id="shopItemText" placeholder="Ex: Acheter 3 bouteilles de Rosé pour le barbecue" style="flex:1; padding:10px; border-radius:6px; border:1px solid #444; background:#222; color:#fff;" required />
-          <button type="submit" class="btn" style="padding:10px 15px;">Ajouter</button>
+        <h2>Liste d'Achats</h2>
+        <form id="shopForm" style="display:flex; gap:10px; margin-bottom:15px;">
+          <input type="text" id="shopItemText" placeholder="Ex: Acheter 2 bouteilles de Brouilly" required style="flex:1; padding:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;" />
+          <button type="submit" class="btn">Ajouter</button>
         </form>
         <ul id="shopListContainer" style="list-style:none; padding:0; margin:0;"></ul>
       </div>
@@ -95,55 +108,108 @@
 
     <section id="view-scan" class="screen">
       <div style="padding:15px; text-align:center;">
-        <h2 style="margin-top:0; text-align:left;">Scanner une bouteille</h2>
-        <p style="color:var(--text-muted); font-size:0.9rem; text-align:left;">Prenez une photo d'une étiquette pour tenter de l'identifier avec notre base de données locale.</p>
-        <button id="scanBtn" class="btn" style="padding:12px 24px; font-size:1rem; margin:20px 0;">📸 Ouvrir l'appareil / Choisir une image</button>
-        <input type="file" id="scanInput" accept="image/*" style="display:none;" />
-        <p id="scanText" style="margin-top:15px; font-weight:500; color:#60a5fa;"></p>
-        <div id="scanResult" class="card" style="margin-top:20px; text-align:left;"></div>
+        <h2 style="text-align:left; margin-top:0;">Scanner une étiquette</h2>
+        <p style="text-align:left; color:#aaa; font-size:0.9rem; margin-bottom:25px;">
+          Prenez une photo nette de l'étiquette de votre bouteille. L'IA va l'analyser sur Internet pour pré-remplir sa fiche.
+        </p>
+        
+        <div style="margin:30px 0;">
+          <label for="scanInput" class="btn" style="padding:16px 32px; font-size:1.1rem; display:inline-block; cursor:pointer; border-radius:12px; font-weight:600; background:#4f46e5; box-shadow:0 4px 14px rgba(79,70,229,0.4);">
+            📸 Ouvrir l'appareil photo
+          </label>
+          <input type="file" id="scanInput" accept="image/*" capture="environment" style="display:none;" />
+        </div>
+        
+        <p id="scanText" style="margin-top:20px; font-weight:500; color:#60a5fa; min-height:24px;"></p>
+        <div id="scanResult" class="card" style="margin-top:20px; text-align:left; background:#1e1e1e; padding:20px; border-radius:8px; display:none; border:1px solid #333;"></div>
       </div>
     </section>
 
     <section id="view-stats" class="screen">
       <div style="padding:15px;">
-        <h2 style="margin-top:0;">Statistiques de la cave</h2>
+        <h2>Statistiques de la Cave</h2>
         <div id="statsContent"></div>
-      </div>
-    </section>
-
-    <section id="view-settings" class="screen">
-      <div style="padding:15px;">
-        <h2 style="margin-top:0;">Réglages & Préférences</h2>
-        
-        <div style="background:#1e1e1e; padding:15px; border-radius:8px; border:1px solid #333; margin-bottom:20px;">
-          <h3 style="margin-top:0; font-size:1.1rem; color:#60a5fa;">Configuration de l'IA</h3>
-          <label style="font-weight:600; font-size:0.85rem;">Clé API Gemini Pro :</label>
-          <input type="password" id="aiApiKey" placeholder="AIzaSy..." style="width:100%; padding:10px; margin-top:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; box-sizing: border-box;" />
-          <button id="btnSaveAiKey" class="btn" style="margin-top:12px; width:100%; background:#10b981;">Sauvegarder la clé API</button>
-        </div>
-
-        <div style="background:#1e1e1e; padding:15px; border-radius:8px; border:1px solid #333; margin-bottom:20px;">
-          <h3 style="margin-top:0; font-size:1.1rem; color:#f59e0b;">Alertes de garde</h3>
-          <label style="font-weight:600; font-size:0.85rem;">Seuil de notification avant expiration (en jours) :</label>
-          <input type="number" id="settingDelay" style="width:100%; padding:10px; margin-top:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; box-sizing: border-box;" />
-          <button id="btnSaveSettings" class="btn" style="margin-top:12px; width:100%;">Enregistrer le délai</button>
-        </div>
-
-        <div style="background:#1e1e1e; padding:15px; border-radius:8px; border:1px solid #333;">
-          <h3 style="margin-top:0; font-size:1.1rem; color:#ef4444;">Maintenance des données</h3>
-          <p style="font-size:0.85rem; color:#aaa; margin-bottom:12px;">Des fonctions de test ou de réinitialisation complète de votre stockage local (IndexedDB).</p>
-          <div style="display:flex; gap:10px; flex-direction:column;">
-            <button id="btnInjectDemo" class="btn" style="background:#4b5563;">📥 Injecter le jeu d'essai (Démo)</button>
-            <button id="btnClearDb" class="btn" style="background:#dc2626;">⚠️ Vider entièrement la base de données</button>
-          </div>
-        </div>
       </div>
     </section>
 
     <section id="view-add" class="screen">
       <div style="padding:15px;">
-        <h2 id="formTitle" style="margin-top:0;">Ajouter une bouteille</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <h2 id="formTitle" style="margin:0;">Ajouter une bouteille</h2>
+          <button type="button" id="btnAiFill" onclick="assistantRemplirFormulaire()" class="btn" style="background:#2563eb; font-size:0.85rem; padding:6px 12px;">🪄 Remplir par IA</button>
         </div>
+        <form id="wineForm" onsubmit="saveWineForm(event)" style="display:grid; gap:10px;">
+          <input type="hidden" id="wineId" />
+          
+          <label>Cuvée / Nom *</label>
+          <input type="text" id="wineCuvee" required style="padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff;" />
+          
+          <label>Domaine / Château</label>
+          <input type="text" id="wineDomain" style="padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff;" />
+          
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+              <label>Millésime (Année)</label>
+              <input type="text" id="wineVintage" placeholder="Ex: 2021" style="width:100%; padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;" />
+            </div>
+            <div style="flex:1;">
+              <label>Type / Couleur</label>
+              <select id="wineType" style="width:100%; padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;">
+                <option value="Rouge">Rouge</option>
+                <option value="Blanc">Blanc</option>
+                <option value="Rosé">Rosé</option>
+              </select>
+            </div>
+          </div>
+
+          <label>Appellation</label>
+          <input type="text" id="wineAppellation" style="padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff;" />
+
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+              <label>Région</label>
+              <input type="text" id="wineRegion" style="width:100%; padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;" />
+            </div>
+            <div style="flex:1;">
+              <label>Pays</label>
+              <input type="text" id="wineCountry" value="France" style="width:100%; padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;" />
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+              <label>Quantité *</label>
+              <input type="number" id="wineQty" value="1" required min="0" style="width:100%; padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;" />
+            </div>
+            <div style="flex:1;">
+              <label>Contenance</label>
+              <input type="text" id="wineSize" value="75cl" style="width:100%; padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;" />
+            </div>
+          </div>
+
+          <label>Emplacement dans la cave</label>
+          <input type="text" id="wineLocation" placeholder="Ex: Clayette 2, gauche" style="padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff;" />
+
+          <label>Code-barres</label>
+          <input type="text" id="wineBarcode" style="padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff;" />
+
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+              <label>Prêt à boire (De)</label>
+              <input type="number" id="wineDrinkFrom" placeholder="Ex: 2024" style="width:100%; padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;" />
+            </div>
+            <div style="flex:1;">
+              <label>Garder jusqu'à (Date)</label>
+              <input type="date" id="wineDrinkTo" style="width:100%; padding:10px; border-radius:6px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;" />
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:15px;">
+            <button type="submit" class="btn" style="flex:2; background:#10b981;">Sauvegarder</button>
+            <button type="button" class="btn" style="flex:1; background:#4b5563;" onclick="switchView('view-list')">Annuler</button>
+          </div>
+        </form>
+      </div>
     </section>
 
   </main>
@@ -155,13 +221,12 @@
     <button class="navItem" data-screen="shopView"><span class="icon">🛒</span><span>Achats</span></button>
     <button class="navItem" data-screen="scanView"><span class="icon">📷</span><span>Scanner</span></button>
     <button class="navItem" data-screen="statsView"><span class="icon">📊</span><span>Stats</span></button>
-    <button class="navItem" data-screen="settingsView"><span class="icon">⚙️</span><span>Réglages</span></button>
   </nav>
 
   <script src="db.js"></script>
   <script src="ai.js"></script>
-  <script src="inventory.js"></script>
   <script src="ui.js"></script>
+  <script src="inventory.js"></script>
   <script src="settings.js"></script>
   <script src="stats.js"></script>
   <script src="alerts.js"></script>

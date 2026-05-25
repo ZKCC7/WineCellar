@@ -1,98 +1,84 @@
 /* ============================================================
-   settings.js — Préférences utilisateurs et injection démo
+   settings.js — Thème global, Configuration et Injection Démo
    ============================================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialisation du délai affiché au chargement
-  const settingDelayInput = document.getElementById("settingDelay");
-  if (settingDelayInput) {
-    const savedDelay = localStorage.getItem("notifDelay") || "30";
-    settingDelayInput.value = savedDelay;
+  // --- BASOULE DU MODE CLAIR / SOMBRE ---
+  const themeToggle = document.getElementById("themeToggleBtn");
+  if (themeToggle) {
+    if (localStorage.getItem("theme") === "light") {
+      document.body.classList.add("light");
+    }
+
+    themeToggle.addEventListener("click", () => {
+      document.body.classList.toggle("light");
+      const isLight = document.body.classList.contains("light");
+      localStorage.setItem("theme", isLight ? "light" : "dark");
+    });
   }
 
-  // Enregistrement des réglages
+  // --- CONFIGURATION DU DÉLAI D'ALERTE ---
+  const delayInput = document.getElementById("settingDelay");
+  if (delayInput) {
+    delayInput.value = localStorage.getItem("notifDelay") || "30";
+  }
+
   document.getElementById("btnSaveSettings")?.addEventListener("click", () => {
-    const delayValue = document.getElementById("settingDelay").value || "30";
-    localStorage.setItem("notifDelay", delayValue);
-    alert(`⚙️ Préférences enregistrées ! Le délai d'alerte est de ${delayValue} jours.`);
-    
+    const delayVal = document.getElementById("settingDelay").value || "30";
+    localStorage.setItem("notifDelay", delayVal);
+    alert(`⚙️ Configuration mise à jour : ${delayVal} jours.`);
     if (typeof loadAlerts === "function") loadAlerts();
+    if (typeof toggleMenu === "function") toggleMenu(); // refermer le menu
   });
 
-  // Action : Vider la base de données
-  document.getElementById("btnClearDb")?.addEventListener("click", async () => {
-    if (confirm("⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer TOUTES vos bouteilles de la base de données locale ?")) {
-      await dbClearAll();
-      alert("Base de données vidée.");
-      // Forcer le rechargement de l'état applicatif
-      location.reload();
-    }
-  });
-
-  // Action : Injecter le jeu d'essai
-  document.getElementById("btnInjectDemo")?.addEventListener("click", async () => {
-    if (confirm("Voulez-vous charger le jeu d'essai de démo ? (Écrase les ID identiques existants)")) {
-      await injectDemoData();
-      alert("⚡ Données de démonstration chargées avec succès !");
-      location.reload();
-    }
-  });
-});
-
-/* ------------------------------------------------------------
-   Jeu d'essai complet (Mock Data pour le test d'interface)
------------------------------------------------------------- */
-async function injectDemoData() {
-  const today = new Date();
-  
-  // Calcul de dates dynamiques pour forcer des comportements d'alertes à J+3, J+10 et J+45
-  const dateUrgent = new Date(); dateUrgent.setDate(today.getDate() + 3);
-  const dateMedium = new Date(); dateMedium.setDate(today.getDate() + 12);
-  const dateFutur = new Date(); dateFutur.setDate(today.getDate() + 180);
-
-  const demoWines = [
-    {
-      id: "demo-1",
-      identity: { cuvee: "Châteauneuf-du-Pape", domain: "Domaine des Relictes", vintage: 2015, type: "Rouge", appellation: "AOC Châteauneuf", region: "Vallée du Rhône", country: "France" },
-      quantity: 3, size: "75cl", location: "Étagère du bas - A1", barcode: "3123456789012",
-      aging: { drinkFrom: 2020, drinkTo: dateUrgent.toISOString().split('T')[0] }
-    },
-    {
-      id: "demo-2",
-      identity: { cuvee: "Meursault Premier Cru", domain: "Bouchard Père & Fils", vintage: 2018, type: "Blanc", appellation: "Meursault", region: "Bourgogne", country: "France" },
-      quantity: 1, size: "75cl", location: "Casier Central - B3", barcode: "3234567890123",
-      aging: { drinkFrom: 2022, drinkTo: dateMedium.toISOString().split('T')[0] }
-    },
-    {
-      id: "demo-3",
-      identity: { cuvee: "Cuvée Sainte-Victoire", domain: "Château Coussin", vintage: 2023, type: "Rosé", appellation: "Côtes de Provence", region: "Provence", country: "France" },
-      quantity: 6, size: "75cl", location: "Bac Fraîcheur Supérieur", barcode: "3345678901234",
-      aging: { drinkFrom: 2024, drinkTo: dateFutur.toISOString().split('T')[0] }
-    }
-  ];
-
-  for (const wine of demoWines) {
-    await dbUpdateWine(wine); // Écrit ou écrase dans IndexedDB via db.js
-  }
-};
-/* ------------------------------------------------------------
-   GESTION DE LA CLÉ API GEMINI (LOCAL STORAGE)
------------------------------------------------------------- */
-document.addEventListener("DOMContentLoaded", () => {
+  // --- CONFIGURATION CLÉ API GEMINI ---
   const apiKeyInput = document.getElementById("aiApiKey");
-  const saveKeyBtn = document.getElementById("btnSaveAiKey");
-
-  // Charger la clé existante au démarrage si elle est en mémoire
   if (apiKeyInput) {
     apiKeyInput.value = localStorage.getItem("gemini_api_key") || "";
   }
 
-  // Sauvegarder la clé au clic sur le bouton
-  if (saveKeyBtn && apiKeyInput) {
-    saveKeyBtn.addEventListener("click", () => {
-      const key = apiKeyInput.value.trim();
-      localStorage.setItem("gemini_api_key", key);
-      alert("🔑 Clé API Gemini sauvegardée localement avec succès !");
-    });
-  }
-})
+  document.getElementById("btnSaveAiKey")?.addEventListener("click", () => {
+    const keyVal = document.getElementById("aiApiKey").value.trim();
+    localStorage.setItem("gemini_api_key", keyVal);
+    alert("🔑 Clé API Gemini sauvegardée avec succès !");
+    if (typeof toggleMenu === "function") toggleMenu();
+  });
+
+  // --- SUPPRESSION ENTIÈRE DE LA BASE ---
+  document.getElementById("btnClearDb")?.addEventListener("click", async () => {
+    if (confirm("⚠️ Souhaitez-vous effacer TOUTES les bouteilles enregistrées ?")) {
+      await dbClearAll();
+      location.reload();
+    }
+  });
+
+  // --- INJECTION DES DONNÉES DÉMO DANS LA BASE ---
+  document.getElementById("btnInjectDemo")?.addEventListener("click", async () => {
+    if (confirm("Injecter les bouteilles d'essai dans votre cave ?")) {
+      const today = new Date();
+      const expirationBientot = new Date(); expirationBientot.setDate(today.getDate() + 10);
+      const expirationFutur = new Date(); expirationFutur.setDate(today.getDate() + 400);
+
+      const simulationWines = [
+        {
+          id: "demo-1",
+          identity: { cuvee: "Château Talbot", domain: "Château Talbot", vintage: "2018", type: "Rouge", appellation: "Saint-Julien", region: "Bordeaux", country: "France" },
+          quantity: 3, size: "75cl", location: "Clayette supérieure - Emplacement 1", barcode: "3123456789012",
+          aging: { drinkFrom: "2023", drinkTo: expirationFutur.toISOString().split('T')[0] }
+        },
+        {
+          id: "demo-2",
+          identity: { cuvee: "Meursault Premier Cru", domain: "Domaine des Comtes Lafon", vintage: "2020", type: "Blanc", appellation: "Meursault", region: "Bourgogne", country: "France" },
+          quantity: 1, size: "75cl", location: "Casier Central - B1", barcode: "3234567890123",
+          aging: { drinkFrom: "2022", drinkTo: expirationBientot.toISOString().split('T')[0] }
+        }
+      ];
+
+      for (const w of simulationWines) {
+        await dbUpdateWine(w.id, w);
+      }
+      alert("🎉 Données de démonstration chargées !");
+      location.reload();
+    }
+  });
+});
