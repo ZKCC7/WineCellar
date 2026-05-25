@@ -2,9 +2,6 @@
    ui.js — Gestion de l’interface et de la navigation
    ============================================================ */
 
-/* ------------------------------------------------------------
-   Raccourcis DOM
------------------------------------------------------------- */
 function $(id) {
   return document.getElementById(id);
 }
@@ -21,12 +18,10 @@ if (menuOverlay) menuOverlay.addEventListener("click", toggleMenu);
 
 function toggleMenu() {
   const isOpen = sideMenu.style.left === "0px";
-
   if (isOpen) {
     sideMenu.style.left = "-260px";
     menuOverlay.style.display = "none";
   } else {
-    sideMenu.style.left = "0px";
     sideMenu.style.left = "0px";
     menuOverlay.style.display = "block";
   }
@@ -42,26 +37,15 @@ function openScreen(screenId) {
     targetScreen.classList.add("visible");
   }
 
-  // Fermer le menu si ouvert
   if (sideMenu) sideMenu.style.left = "-260px";
   if (menuOverlay) menuOverlay.style.display = "none";
 
-  // Actions de rafraîchissement au changement de vue
-  if (screenId === "view-list" && typeof loadInventory === "function") {
-    loadInventory();
-  }
-  if (screenId === "view-alerts" && typeof loadAlerts === "function") {
-    loadAlerts();
-  }
-  if (screenId === "view-stats" && typeof loadStats === "function") {
-    loadStats();
-  }
-  if (screenId === "view-shop" && typeof loadShopList === "function") {
-    loadShopList();
-  }
+  if (screenId === "view-list" && typeof loadInventory === "function") loadInventory();
+  if (screenId === "view-alerts" && typeof loadAlerts === "function") loadAlerts();
+  if (screenId === "view-stats" && typeof loadStats === "function") loadStats();
+  if (screenId === "view-shop" && typeof loadShopList === "function") loadShopList();
 }
 
-// Rendre la fonction accessible globalement pour app.js
 window.switchView = openScreen;
 
 /* ------------------------------------------------------------
@@ -76,7 +60,8 @@ async function renderWineList(winesToRender) {
   if (wines.length === 0) {
     container.innerHTML = `
       <div class="card" style="text-align:center; color:var(--text-muted); padding:30px;">
-        <p style="font-size:2.5rem; margin-bottom:10px;">🍷</p>\n        <p>Votre cave est vide ou aucun vin ne correspond à votre recherche.</p>
+        <p style="font-size:2.5rem; margin-bottom:10px;">🍷</p>
+        <p>Votre cave est vide ou aucun vin ne correspond à votre recherche.</p>
       </div>
     `;
     return;
@@ -104,7 +89,7 @@ async function renderWineList(winesToRender) {
         </div>
 
         <div class="card-actions-inline" style="margin-top: 12px;">
-          <button class="btn-secondary" onclick="showWineDetail('${wine.id}')">🔍 Détails</button>
+          <button class="btn-secondary" onclick="showWineDetail('${wine.id}')">🔍 Détails & IA</button>
           <button class="btn-secondary" onclick="quickIncrement('${wine.id}', 1)">➕</button>
           <button class="btn-secondary" onclick="quickIncrement('${wine.id}', -1)">➖</button>
         </div>
@@ -124,7 +109,7 @@ async function quickIncrement(id, amount) {
   const newQty = currentQty + amount;
 
   if (newQty < 0) {
-    if (confirm("Voulez-vous supprimer complètement cette bouteille de votre cave ?")) {
+    if (confirm("Voulez-vous supprimer cette bouteille de votre cave ?")) {
       await dbDeleteWine(id);
     } else {
       return;
@@ -134,15 +119,12 @@ async function quickIncrement(id, amount) {
     await dbUpdateWine(id, wine);
   }
 
-  // Actualiser la vue courante
-  if (typeof filterAndDisplayInventory === "function") {
-    filterAndDisplayInventory();
-  }
+  if (typeof filterAndDisplayInventory === "function") filterAndDisplayInventory();
   renderWineList();
 }
 
 /* ------------------------------------------------------------
-   AFFICHAGE DU DÉTAIL D'UNE BOUTEILLE
+   AFFICHAGE DU DÉTAIL D'UNE BOUTEILLE (AVEC INTÉGRATION IA)
 ------------------------------------------------------------ */
 async function showWineDetail(id) {
   const wine = await dbGetWine(id);
@@ -150,7 +132,6 @@ async function showWineDetail(id) {
 
   const modal = $("wineDetailModal") || createDetailModal();
   const content = $("wineDetailContent");
-
   if (!content) return;
 
   content.innerHTML = `
@@ -169,20 +150,20 @@ async function showWineDetail(id) {
       <tr><td><b>Millésime :</b></td><td>${wine.identity?.vintage || 'N.V.'}</td></tr>
       <tr><td><b>Stock actuel :</b></td><td><b>${wine.quantity || 0}</b> bouteille(s) (${wine.size || '75cl'})</td></tr>
       <tr><td><b>Emplacement :</b></td><td>${wine.location || 'Non spécifié'}</td></tr>
-      <tr><td><b>Code-barres :</b></td><td>${wine.barcode || 'Aucun'}</td></tr>
       <tr><td><b>Apogée :</b></td><td>Entre ${wine.aging?.drinkFrom || '?'} et ${wine.aging?.drinkTo || '?'}</td></tr>
     </table>
 
-    <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-      <button class="btn" style="width:100%; background: #10b981;" id="btnMetsIa" onclick="typeof associerMetsIA === 'function' ? associerMetsIA('${wine.id}') : alert('Module IA non chargé')">
-        🤖 Idées d'accords mets-vins (IA)
+    <div style="margin-top: 20px; padding: 12px; background: #1e1e2f; border-radius: 8px; border: 1px solid #333;">
+      <h4 style="margin: 0 0 10px 0; color: #60a5fa; display: flex; align-items: center; gap: 6px;">🤖 Assistant Sommelier</h4>
+      <button class="btn" style="width:100%; background: #2563eb; font-size: 0.9rem;" id="btnMetsIa" onclick="typeof associerMetsIA === 'function' ? associerMetsIA('${wine.id}') : alert('Module IA non chargé')">
+        🔍 Trouver des idées d'accords
       </button>
-      <div id="accordMetsIaResult"></div>
-      
-      <div style="display:flex; gap: 10px; margin-top: 10px;">
-        <button class="btn" style="flex:1;" onclick="closeWineDetail(); editWine('${wine.id}');">✏️ Modifier</button>
-        <button class="btn" style="flex:1; background:#ef4444;" onclick="closeWineDetail(); deleteWineFromInv('${wine.id}');">🗑️ Supprimer</button>
-      </div>
+      <div id="accordMetsIaResult" style="margin-top: 10px; color: #e5e7eb; font-size: 0.9rem;"></div>
+    </div>
+    
+    <div style="display:flex; gap: 10px; margin-top: 20px;">
+      <button class="btn" style="flex:1; background: #4b5563;" onclick="closeWineDetail(); editWine('${wine.id}');">✏️ Modifier</button>
+      <button class="btn" style="flex:1; background:#ef4444;" onclick="closeWineDetail(); deleteWineFromInv('${wine.id}');">🗑️ Supprimer</button>
     </div>
   `;
 
@@ -192,26 +173,23 @@ async function showWineDetail(id) {
 function closeWineDetail() {
   const modal = $("wineDetailModal");
   if (modal) modal.style.display = "none";
-  const containerAccord = $("accordMetsIaResult");
-  if (containerAccord) containerAccord.innerHTML = "";
 }
 
 function createDetailModal() {
   const modal = document.createElement("div");
   modal.id = "wineDetailModal";
   modal.className = "modal";
-  modal.style.display = "none";
   modal.style.position = "fixed";
   modal.style.top = "0";
   modal.style.left = "0";
   modal.style.width = "100%";
   modal.style.height = "100%";
-  modal.style.backgroundColor = "rgba(0,0,0,0.5)";
+  modal.style.backgroundColor = "rgba(0,0,0,0.7)";
   modal.style.zIndex = "1000";
 
   modal.innerHTML = `
-    <div class="modal-content" style="background: var(--card-bg); max-width: 500px; margin: 50px auto; padding: 20px; border-radius: 12px; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.25);">
-      <span class="close-modal" onclick="closeWineDetail()" style="position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</span>
+    <div class="modal-content" style="background: #1a1a1a; color: #fff; max-width: 450px; margin: 40px auto; padding: 20px; border-radius: 12px; position: relative; border: 1px solid #333;">
+      <span class="close-modal" onclick="closeWineDetail()" style="position: absolute; top: 15px; right: 20px; font-size: 1.6rem; cursor: pointer; color: #aaa;">&times;</span>
       <div id="wineDetailContent"></div>
     </div>
   `;
@@ -224,19 +202,19 @@ function createDetailModal() {
    ASSISTANT FORMULAIRE PAR CONVERSATION (IA RAPIDE)
 ------------------------------------------------------------ */
 function assistantRemplirFormulaire() {
-  const texte = prompt("Entrez la description ou l'étiquette brute du vin (ex: 'Château Margaux 2015 rouge en caisse centrale') :");
+  const texte = prompt("Entrez la description brute ou l'étiquette (ex: 'Château Margaux 2015 rouge') :");
   if (!texte || !texte.trim()) return;
 
   const btn = document.getElementById("btnAiFill");
-  const originalText = btn ? btn.innerHTML : "🪄 Remplir par IA";
+  const originalText = btn ? btn.innerHTML : "🪄 Sainte-IA";
   if (btn) {
-    btn.innerHTML = "⚡ Analyse IA en cours...";
+    btn.innerHTML = "⚡ Analyse en cours...";
     btn.disabled = true;
   }
 
-  const promptConstruct = `Analyse ce texte concernant un vin et retourne UNIQUEMENT un objet JSON valide (sans markdown, sans enrobage \`\`\`json) contenant ces champs précis :
+  const promptConstruct = `Analyse ce texte et retourne UNIQUEMENT un objet JSON valide sans enrobage markdown :
   {"cuvee": string, "domain": string, "vintage": number, "type": "Rouge"|"Blanc"|"Rosé"|"Effervescent", "appellation": string, "region": string, "country": string}.
-  Texte à analyser : "${texte}"`;
+  Texte : "${texte}"`;
 
   if (typeof appelerGemini === "function") {
     appelerGemini(promptConstruct).then(reponse => {
@@ -245,55 +223,38 @@ function assistantRemplirFormulaire() {
         btn.disabled = false;
       }
       try {
-        const cleanJson = reponse.replace(/\`\`\`json/g, "").replace(/\`\`\`/g, "").trim();
+        const cleanJson = reponse.replace(/```json/g, "").replace(/```/g, "").trim();
         const data = JSON.parse(cleanJson);
 
         openScreen("view-add");
-        document.getElementById("formTitle").innerText = "Ajouter une bouteille";
-
         if (data.cuvee) document.getElementById("wineCuvee").value = data.cuvee;
         if (data.domain) document.getElementById("wineDomain").value = data.domain;
         if (data.vintage) document.getElementById("wineVintage").value = data.vintage;
         if (data.type) document.getElementById("wineType").value = data.type;
-        if (data.appellation) document.getElementById("wineAppellation").value = data.appellation;
-        if (data.region) document.getElementById("wineRegion").value = data.region;
-        if (data.country) document.getElementById("wineCountry").value = data.country;
-
-        alert("✨ Formulaire pré-rempli avec succès par l'IA ! Vérifiez les informations avant de sauvegarder.");
+        
+        alert("✨ Formulaire pré-rempli !");
       } catch (e) {
-        console.error("Échec du parsing JSON de l'assistant :", e);
-        alert("L'IA n'a pas pu structurer correctement les données. Réessayez avec une description plus claire.");
+        alert("L'IA n'a pas pu structurer les données.");
       }
-    }).catch(err => {
+    }).catch(() => {
       if (btn) {
         btn.innerHTML = originalText;
         btn.disabled = false;
       }
-      console.error(err);
     });
-  } else {
-    if (btn) {
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-    }
-    alert("Le module de communication avec l'IA (ai.js) n'est pas chargé.");
   }
 }
 
 /* ------------------------------------------------------------
-   INITIALISATION DE L'INTERFACE AU CHARGEMENT
+   INITIALISATION
 ------------------------------------------------------------ */
 document.addEventListener("DOMContentLoaded", () => {
-  // Chargement de la liste initiale des bouteilles
   renderWineList();
-
-  // Écouteur pour la recherche en temps réel sur l'écran d'accueil
   const mainSearch = $("mainSearch");
   if (mainSearch) {
     mainSearch.addEventListener("input", async (e) => {
-      const q = e.target.value;
       if (typeof dbSearch === "function") {
-        const results = await dbSearch(q);
+        const results = await dbSearch(e.target.value);
         renderWineList(results);
       }
     });

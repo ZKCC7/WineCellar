@@ -15,266 +15,160 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    :root {
-      --primary: #6b1d2f;
-      --primary-light: #f5ebec;
-      --primary-hover: #541422;
-      --text-main: #1f2937;
-      --text-muted: #6b7280;
-      --bg-app: #f9fafb;
-      --bg-card: #ffffff;
-      --border-color: #e5e7eb;
-      --radius-md: 12px;
-      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    body.dark {
-      --bg-app: #111827;
-      --bg-card: #1f2937;
-      --text-main: #f9fafb;
-      --text-muted: #9ca3af;
-      --border-color: #374151;
-      --primary-light: #372226;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: var(--bg-app);
-      color: var(--text-main);
-      padding-bottom: 80px;
-    }
-
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 16px 20px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header h1 { font-size: 1.2rem; font-weight: 700; }
-
-    main { max-width: 1200px; margin: 0 auto; padding: 16px; }
-
-    /* Système d'affichage de ton projet */
-    .screen { display: none; }
-    .screen.visible { display: block; animation: fadeIn 0.2s ease-out; }
-
-    .screen h2 {
-      font-size: 1.4rem; margin-bottom: 20px; color: var(--primary); font-weight: 700;
-      border-bottom: 2px solid var(--primary-light); padding-bottom: 6px;
-    }
-    body.dark .screen h2 { color: #f3f4f6; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Nouvelle Barre Basse */
-    nav#bottomNav {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: var(--bg-card); border-top: 1px solid var(--border-color);
-      display: flex; justify-content: space-around; padding: 6px 2px;
-      z-index: 110; box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
-    }
-
-    .navItem {
-      background: none; border: none; color: var(--text-muted);
-      padding: 6px; font-size: 0.7rem; font-weight: 500; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1;
-      border-radius: var(--radius-md); transition: var(--transition);
-    }
-    .navItem .icon { font-size: 1.2rem; }
-    .navItem.active { color: var(--primary); font-weight: 700; background-color: var(--primary-light); }
-    body.dark .navItem.active { color: #fca5a5; }
-
-    .card {
-      background: var(--bg-card); border: 1px solid var(--border-color);
-      border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow); margin-bottom: 16px;
-    }
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 16px; font-size: 0.9rem; font-weight: 600; border-radius: var(--radius-md);
-      border: none; cursor: pointer; transition: var(--transition);
-    }
-    .btn-primary { background: var(--primary); color: white; }
-    input, select, textarea {
-      width: 100%; padding: 10px; border: 1px solid var(--border-color);
-      border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-main); margin-top: 4px;
-    }
-    .form-group { margin-bottom: 12px; }
-    label { font-size: 0.85rem; font-weight: 600; }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="light">
+<body>
 
   <header>
-    <h1>🍷 Ma cave à vin</h1>
-    <button class="btn btn-primary" id="addBtn" style="padding: 6px 12px; font-size:0.8rem;">➕ Ajouter</button>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button id="menuBtn">☰</button>
+      <h1 style="margin: 0; font-weight: 700; font-size: 1.3rem;">🍇 Ma Cave Pro</h1>
+    </div>
+    <button onclick="switchView('view-add')" style="font-size: 1.4rem;">➕</button>
   </header>
 
-  <main>
+  <div id="menuOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9;"></div>
+  <nav id="sideMenu">
+    <h2 style="color: #ffb347; margin-bottom: 20px;">Options</h2>
+    <div class="menuItem" onclick="switchView('view-list')">📦 Ma cave</div>
+    <div class="menuItem" onclick="if(typeof exportCellarPDF === 'function') exportCellarPDF()">📄 Exporter la cave (PDF)</div>
+    <div class="menuItem" onclick="if(typeof startVoiceSearch === 'function') startVoiceSearch()">🎙️ Recherche vocale</div>
+  </nav>
+
+  <main style="padding-bottom: 70px;">
     
     <section id="view-list" class="screen visible">
-      <h2>📦 Ma cave</h2>
-      <div style="margin-bottom:15px; display:flex; gap:10px;">
-        <input type="text" id="invSearch" placeholder="Rechercher une cuvée, un domaine...">
-        <select id="invFilterType" style="width:130px;">
-          <option value="">Tous</option>
-          <option value="Rouge">Rouge</option>
-          <option value="Blanc">Blanc</option>
-          <option value="Rosé">Rosé</option>
-        </select>
+      <div class="search-bar-container" style="padding: 12px 15px; display: flex; flex-direction: column; gap: 10px;">
+        <input type="text" id="mainSearch" placeholder="🔍 Rechercher un vin, une région, un domaine..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; box-sizing: border-box;" />
+        <button type="button" id="btnAiFill" onclick="assistantRemplirFormulaire()" class="btn" style="background:#2563eb; color:white; width:100%; padding: 11px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none;">🪄 Ajouter via l'assistant IA</button>
       </div>
-      <div class="card" style="overflow-x:auto; padding:0;">
-        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.9rem;">
-          <thead>
-            <tr style="background:rgba(0,0,0,0.02); border-bottom:1px solid var(--border-color);">
-              <th style="padding:12px;">Cuvée</th>
-              <th style="padding:12px;">Type</th>
-              <th style="padding:12px;">Qté</th>
-              <th style="padding:12px;">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="inventoryTableBody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="view-add" class="screen">
-      <h2 id="formTitle">Ajouter une bouteille</h2>
-      <div class="card">
-        <form id="wineForm" onsubmit="event.preventDefault();">
-          <div class="form-group"><label>Nom de la cuvée *</label><input type="text" id="wineCuvee" required></div>
-          <div class="form-group"><label>Domaine / Producteur</label><input type="text" id="wineDomain"></div>
-          <div class="form-group"><label>Millésime</label><input type="number" id="wineVintage"></div>
-          <div class="form-group">
-            <label>Couleur</label>
-            <select id="wineType">
-              <option value="Rouge">Rouge</option>
-              <option value="Blanc">Blanc</option>
-              <option value="Rosé">Rosé</option>
-            </select>
-          </div>
-          <div class="form-group"><label>Appellation</label><input type="text" id="wineAppellation"></div>
-          <div class="form-group"><label>Région</label><input type="text" id="wineRegion"></div>
-          <div class="form-group"><label>Pays</label><input type="text" id="wineCountry" value="France"></div>
-          <div class="form-group"><label>Quantité</label><input type="number" id="wineQty" value="1"></div>
-          <div class="form-group"><label>Format</label><input type="text" id="wineSize" value="75cl"></div>
-          <div class="form-group"><label>Emplacement Cave</label><input type="text" id="wineLocation"></div>
-          <div class="form-group"><label>Code-barres</label><input type="text" id="wineBarcode"></div>
-          <div class="form-group"><label>Prêt à boire (A partir de)</label><input type="number" id="wineDrinkFrom"></div>
-          <div class="form-group"><label>Garder jusqu'à (Date limite Alerte)</label><input type="date" id="wineDrinkTo"></div>
-          <button type="button" id="btnSaveWine" class="btn btn-primary" style="width:100%; margin-top:10px;">Enregistrer la référence</button>
-        </form>
-      </div>
+      <div id="wineList" class="container"></div>
     </section>
 
     <section id="view-inventory" class="screen">
-      <h2>🍾 Inventaire rapide</h2>
-      <div id="inventoryContent"></div>
+      <div style="padding:15px;">
+        <h2 style="margin-top:0;">Inventaire Détaillé</h2>
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+          <input type="text" id="invSearch" placeholder="Filtrer le tableau..." style="flex:1; padding:8px; border-radius:6px; border:1px solid #444; background:#222; color:#fff;" />
+          <select id="invFilterType" style="padding:8px; border-radius:6px; border:1px solid #444; background:#222; color:#fff;">
+            <option value="">Tous les types</option>
+            <option value="Rouge">Rouge</option>
+            <option value="Blanc">Blanc</option>
+            <option value="Rosé">Rosé</option>
+            <option value="Effervescent">Effervescent</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse: collapse; font-size:0.9rem; text-align:left;">
+            <thead>
+              <tr style="border-bottom:2px solid #444; color:#aaa;">
+                <th style="padding:8px;">Vin</th>
+                <th style="padding:8px;">Type</th>
+                <th style="padding:8px;">Més.</th>
+                <th style="padding:8px;">Qté</th>
+                <th style="padding:8px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTableBody"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <section id="view-alerts" class="screen">
-      <h2>🔔 Alertes de garde</h2>
-      <div id="alertsContent"></div>
+      <div style="padding:15px;">
+        <h2 style="margin-top:0;">Alertes de vieillissement</h2>
+        <div id="alertsContent"></div>
+      </div>
     </section>
 
     <section id="view-shop" class="screen">
-      <h2>🛒 Liste d'achats</h2>
-      <div class="card">
-        <form id="shopForm">
-          <div class="form-group" style="display:flex; gap:8px; margin:0;">
-            <input type="text" id="shopItemText" placeholder="Ex: Acheter 3 bouteilles de Meursault..." style="margin:0;">
-            <button type="submit" class="btn btn-primary">➕</button>
-          </div>
+      <div style="padding:15px;">
+        <h2 style="margin-top:0;">Liste de courses</h2>
+        <form id="shopForm" style="display:flex; gap:10px; margin-bottom:20px;">
+          <input type="text" id="shopItemText" placeholder="Ex: Acheter 3 bouteilles de Rosé pour le barbecue" style="flex:1; padding:10px; border-radius:6px; border:1px solid #444; background:#222; color:#fff;" required />
+          <button type="submit" class="btn" style="padding:10px 15px;">Ajouter</button>
         </form>
+        <ul id="shopListContainer" style="list-style:none; padding:0; margin:0;"></ul>
       </div>
-      <ul id="shopListContainer" style="list-style:none; padding:0;"></ul>
     </section>
 
     <section id="view-scan" class="screen">
-      <h2>📷 Scanner une étiquette</h2>
-      <div class="card" style="text-align:center;">
-        <button class="btn btn-primary" id="scanBtn">📸 Prendre une photo</button>
-        <input type="file" id="scanInput" accept="image/*" capture="environment" style="display:none;">
-        <p id="scanText" style="margin-top:15px; color:var(--text-muted); font-weight:500;"></p>
-        <div id="scanResult" style="margin-top:15px;"></div>
+      <div style="padding:15px; text-align:center;">
+        <h2 style="margin-top:0; text-align:left;">Scanner une bouteille</h2>
+        <p style="color:var(--text-muted); font-size:0.9rem; text-align:left;">Prenez une photo d'une étiquette pour tenter de l'identifier avec notre base de données locale.</p>
+        <button id="scanBtn" class="btn" style="padding:12px 24px; font-size:1rem; margin:20px 0;">📸 Ouvrir l'appareil / Choisir une image</button>
+        <input type="file" id="scanInput" accept="image/*" style="display:none;" />
+        <p id="scanText" style="margin-top:15px; font-weight:500; color:#60a5fa;"></p>
+        <div id="scanResult" class="card" style="margin-top:20px; text-align:left;"></div>
       </div>
     </section>
 
     <section id="view-stats" class="screen">
-      <h2>📊 Statistiques de la cave</h2>
-      <div id="statsContent"></div>
+      <div style="padding:15px;">
+        <h2 style="margin-top:0;">Statistiques de la cave</h2>
+        <div id="statsContent"></div>
+      </div>
     </section>
 
-    <section id="settingsView" class="screen">
-      <h2>Paramètres</h2>
+    <section id="view-settings" class="screen">
+      <div style="padding:15px;">
+        <h2 style="margin-top:0;">Réglages & Préférences</h2>
+        
+        <div style="background:#1e1e1e; padding:15px; border-radius:8px; border:1px solid #333; margin-bottom:20px;">
+          <h3 style="margin-top:0; font-size:1.1rem; color:#60a5fa;">Configuration de l'IA</h3>
+          <label style="font-weight:600; font-size:0.85rem;">Clé API Gemini Pro :</label>
+          <input type="password" id="aiApiKey" placeholder="AIzaSy..." style="width:100%; padding:10px; margin-top:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; box-sizing: border-box;" />
+          <button id="btnSaveAiKey" class="btn" style="margin-top:12px; width:100%; background:#10b981;">Sauvegarder la clé API</button>
+        </div>
 
-      <div class="card">
-        <h3>🌙 Mode sombre</h3>
-        <label>
-          <input type="checkbox" id="darkToggle" />
-          Activer le mode sombre
-        </label>
-      </div>
+        <div style="background:#1e1e1e; padding:15px; border-radius:8px; border:1px solid #333; margin-bottom:20px;">
+          <h3 style="margin-top:0; font-size:1.1rem; color:#f59e0b;">Alertes de garde</h3>
+          <label style="font-weight:600; font-size:0.85rem;">Seuil de notification avant expiration (en jours) :</label>
+          <input type="number" id="settingDelay" style="width:100%; padding:10px; margin-top:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; box-sizing: border-box;" />
+          <button id="btnSaveSettings" class="btn" style="margin-top:12px; width:100%;">Enregistrer le délai</button>
+        </div>
 
-      <div class="card">
-        <h3>🔑 Assistant IA (Google Gemini)</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
-          Génère une clé gratuite sur <a href="https://aistudio.google.com/" target="_blank" style="color: var(--primary);">Google AI Studio</a>. Elle sera stockée uniquement sur ton téléphone/navigateur.
-        </p>
-        <label for="aiApiKey" style="display:block; margin-bottom:5px; font-weight:500;">Clé API Gemini</label>
-        <input type="password" id="aiApiKey" placeholder="AIzaSy..." style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px;" />
-        <button type="button" class="btn" id="btnSaveAiKey" style="background: var(--primary); color: white; width: 100%;">Enregistrer la clé</button>
+        <div style="background:#1e1e1e; padding:15px; border-radius:8px; border:1px solid #333;">
+          <h3 style="margin-top:0; font-size:1.1rem; color:#ef4444;">Maintenance des données</h3>
+          <p style="font-size:0.85rem; color:#aaa; margin-bottom:12px;">Des fonctions de test ou de réinitialisation complète de votre stockage local (IndexedDB).</p>
+          <div style="display:flex; gap:10px; flex-direction:column;">
+            <button id="btnInjectDemo" class="btn" style="background:#4b5563;">📥 Injecter le jeu d'essai (Démo)</button>
+            <button id="btnClearDb" class="btn" style="background:#dc2626;">⚠️ Vider entièrement la base de données</button>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <div class="card">
-        <h3>🔔 Délai des notifications</h3>
-        <select id="notifDelay">
-          <option value="7">7 jours</option>
-          <option value="15">15 jours</option>
-          <option value="30">30 jours</option>
-        </select>
-      </div>
-
-      <div class="card" style="margin-top: 20px; border-top: 1px solid #fee2e2;">
-        <h3 style="color:#b91c1c;">⚠️ Zone de danger</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">Cette action supprimera tout l'historique de votre cave.</p>
-        <button id="btnClearDb" style="background:#b91c1c; color:white; font-size:0.8rem; padding:8px 12px; border:none; border-radius:6px; cursor:pointer;">Vider la base</button>
-      </div>
+    <section id="view-add" class="screen">
+      <div style="padding:15px;">
+        <h2 id="formTitle" style="margin-top:0;">Ajouter une bouteille</h2>
+        </div>
     </section>
 
   </main>
 
   <nav id="bottomNav">
     <button class="navItem active" data-screen="listView"><span class="icon">📦</span><span>Ma cave</span></button>
-    <button type="button" id="btnAiFill" onclick="assistantRemplirFormulaire()" class="btn" style="background:#2563eb; color:white; width:100%; margin-bottom:15px;">🪄 Remplir par IA</button>
     <button class="navItem" data-screen="inventoryView"><span class="icon">🍾</span><span>Inventaire</span></button>
     <button class="navItem" data-screen="alertsView"><span class="icon">🔔</span><span>Alertes</span></button>
-    <button class="navItem" data-screen="shopView"><span class="icon">🛒</span><span>Magasin</span></button>
+    <button class="navItem" data-screen="shopView"><span class="icon">🛒</span><span>Achats</span></button>
     <button class="navItem" data-screen="scanView"><span class="icon">📷</span><span>Scanner</span></button>
     <button class="navItem" data-screen="statsView"><span class="icon">📊</span><span>Stats</span></button>
     <button class="navItem" data-screen="settingsView"><span class="icon">⚙️</span><span>Réglages</span></button>
   </nav>
 
   <script src="db.js"></script>
+  <script src="ai.js"></script>
   <script src="inventory.js"></script>
+  <script src="ui.js"></script>
   <script src="settings.js"></script>
   <script src="stats.js"></script>
   <script src="alerts.js"></script>
   <script src="shop.js"></script>
   <script src="scan.js"></script>
   <script src="pdf.js"></script>
+  <script src="voice.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
