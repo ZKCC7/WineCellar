@@ -119,9 +119,86 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 // Dans la fonction qui gère le scan (ex: après avoir récupéré le fichier depuis l'input)
-document.getElementById('scanInput').addEventListener('change', function(e) {
-    if (e.target.files && e.target.files[0]) {
+document.addEventListener('DOMContentLoaded', function() {
+  const scanInput = document.getElementById('scanInput');
+  if (scanInput) {
+    scanInput.addEventListener('change', function(e) {
+      if (e.target.files && e.target.files[0]) {
         scannedImageFile = e.target.files[0];
-        // ... (le reste de ta logique de scan)
-    }
+        // ... reste de ta logique
+      }
+    });
+  } else {
+    console.error("Élément #scanInput introuvable !");
+  }
 });
+// ============================================================
+// scan.js — Gestion du scan d'étiquettes (Version Complète Corrigée)
+// ============================================================
+
+// Variable globale pour stocker l'image scannée (partagée avec ai.js)
+let scannedImageFile = null;
+
+// Fonction pour démarrer le scan
+function startScan() {
+    const scanInput = document.getElementById('scanInput');
+    if (scanInput) {
+        scanInput.click();
+    } else {
+        console.error("❌ Élément #scanInput introuvable !");
+    }
+}
+
+// Gestion du changement de fichier (image scannée)
+document.addEventListener('DOMContentLoaded', () => {
+    const scanInput = document.getElementById('scanInput');
+    if (!scanInput) {
+        console.error("❌ Élément #scanInput introuvable !");
+        return;
+    }
+
+    scanInput.addEventListener('change', async (e) => {
+        if (e.target.files && e.target.files[0]) {
+            scannedImageFile = e.target.files[0];
+            const scanTextElement = document.getElementById('scanText');
+            if (scanTextElement) {
+                scanTextElement.textContent = "Image chargée. Analyse en cours...";
+            }
+
+            try {
+                // Afficher l'aperçu de l'image
+                const scanResult = document.getElementById('scanResult');
+                if (scanResult) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        scanResult.innerHTML = `<img src="${event.target.result}" style="max-width:100%; border-radius:8px; margin-bottom:10px;" />`;
+                        scanResult.style.display = 'block';
+                    };
+                    reader.readAsDataURL(scannedImageFile);
+                }
+
+                // Extraire le texte avec Tesseract
+                const { data: { text } } = await Tesseract.recognize(scannedImageFile, 'fra');
+                console.log("Texte extrait :", text);
+
+                // Afficher le texte extrait
+                if (scanTextElement) {
+                    scanTextElement.textContent = "Texte extrait : " + text.substring(0, 100) + (text.length > 100 ? "..." : "");
+                }
+
+                // Stocker le texte dans localStorage pour ai.js
+                localStorage.setItem('lastScannedText', text);
+
+            } catch (error) {
+                console.error("❌ Erreur lors du scan :", error);
+                if (scanTextElement) {
+                    scanTextElement.textContent = "Erreur lors du scan. Réessayez.";
+                }
+            }
+        }
+    });
+});
+
+// Exposition globale pour ai.js
+window.scannedImageFile = scannedImageFile;
+window.startScan = startScan;

@@ -1,75 +1,74 @@
-/* ============================================================
-   stats.js — Statistiques de la cave
-   ============================================================ */
+// ============================================================
+// stats.js — Gestion des statistiques (Version Finale Corrigée)
+// ============================================================
 
-/* ------------------------------------------------------------
-   Charger et afficher les statistiques
------------------------------------------------------------- */
 async function loadStats() {
-  const wines = await dbGetAllWines();
-  const statsDiv = document.getElementById("statsContent");
+    const statsContent = document.getElementById('statsContent');
+    if (!statsContent) {
+        console.warn("⚠️ Élément #statsContent introuvable.");
+        return;
+    }
 
-  if (!statsDiv) {
-    console.warn("⚠️ Élément #statsContent introuvable.");
-    return;
-  }
+    try {
+        // Remplacement de dbGetAllWines() par un appel direct à LocalBase
+        const db = new LocalBase('wineCellar');
+        const wines = await db.collection('wines').get();
 
-  if (!wines || wines.length === 0) {
-    statsDiv.innerHTML = `
-      <div class="card">
-        Aucune bouteille pour l’instant.
-      </div>
-    `;
-    return;
-  }
+        if (!wines || wines.length === 0) {
+            statsContent.innerHTML = `
+                <div class="card">
+                    <p style="text-align:center; color:var(--text-muted);">
+                        Aucune bouteille dans votre cave.
+                    </p>
+                </div>
+            `;
+            return;
+        }
 
-  /* -------------------------
-     Total bouteilles
-  ------------------------- */
-  const total = wines.reduce(
-    (sum, w) => sum + (w.purchase?.quantity ?? 1),
-    0
-  );
+        // Calcul des stats
+        const totalBottles = wines.reduce((sum, wine) => sum + (wine.qty || 1), 0);
+        const byType = {};
+        wines.forEach(wine => {
+            const type = wine.type || 'Inconnu';
+            byType[type] = (byType[type] || 0) + (wine.qty || 1);
+        });
 
-  /* -------------------------
-     Répartition par couleur
-  ------------------------- */
-  const byColor = {};
-  wines.forEach(w => {
-    const c = w.identity?.color || "Inconnue";
-    byColor[c] = (byColor[c] || 0) + (w.purchase?.quantity ?? 1);
-  });
+        const byRegion = {};
+        wines.forEach(wine => {
+            const region = wine.region || 'Inconnue';
+            byRegion[region] = (byRegion[region] || 0) + (wine.qty || 1);
+        });
 
-  /* -------------------------
-     Répartition par région
-  ------------------------- */
-  const byRegion = {};
-  wines.forEach(w => {
-    const r = w.identity?.region || "Inconnue";
-    byRegion[r] = (byRegion[r] || 0) + (w.purchase?.quantity ?? 1);
-  });
+        // Affichage
+        statsContent.innerHTML = `
+            <div class="card">
+                <h3>📊 Total de bouteilles</h3>
+                <p><strong>${totalBottles}</strong> bouteilles dans ta cave</p>
+            </div>
 
-  /* -------------------------
-     Construction HTML
-  ------------------------- */
-  statsDiv.innerHTML = `
-    <div class="card">
-      <h3>Total de bouteilles</h3>
-      <p><b>${total}</b> bouteilles dans ta cave</p>
-    </div>
+            <div class="card">
+                <h3>🍷 Répartition par type</h3>
+                ${Object.entries(byType)
+                    .map(([type, count]) => `<p>${type} : <strong>${count}</strong></p>`)
+                    .join('')}
+            </div>
 
-    <div class="card">
-      <h3>Répartition par couleur</h3>
-      ${Object.entries(byColor)
-        .map(([color, count]) => `<p>${color} : <b>${count}</b></p>`)
-        .join("")}
-    </div>
-
-    <div class="card">
-      <h3>Répartition par région</h3>
-      ${Object.entries(byRegion)
-        .map(([region, count]) => `<p>${region} : <b>${count}</b></p>`)
-        .join("")}
-    </div>
-  `;
+            <div class="card">
+                <h3>🗺️ Répartition par région</h3>
+                ${Object.entries(byRegion)
+                    .map(([region, count]) => `<p>${region} : <strong>${count}</strong></p>`)
+                    .join('')}
+            </div>
+        `;
+    } catch (error) {
+        console.error("❌ Erreur lors du chargement des stats :", error);
+        statsContent.innerHTML = `
+            <div class="card">
+                <p style="color:red;">Erreur lors du chargement des statistiques.</p>
+            </div>
+        `;
+    }
 }
+
+// Exposition globale
+window.loadStats = loadStats;
