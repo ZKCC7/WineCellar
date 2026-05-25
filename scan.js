@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Extraire le texte avec Tesseract
-                const { data: { text } } = await Tesseract.recognize(scannedImageFile, 'fra');
+                const { data: { text } } = await Tesseract.recognize(scannedImageFile, 'fra+eng+ita+spa');
                 console.log("Texte extrait :", text);
 
                 // Afficher le texte extrait

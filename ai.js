@@ -30,7 +30,7 @@ async function appelerGemini(prompt) {
     if (!apiKey) return null;
 
     try {
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -104,47 +104,69 @@ async function assistantRemplirFormulaire() {
     btn.disabled = true;
 
     try {
-        // 1. Vérifier si une image est disponible (via scannedImageFile ou scanInput)
-        let imageFile = scannedImageFile;
-        const fileInput = document.getElementById('scanInput');
-        if (fileInput && fileInput.files[0]) {
-            imageFile = fileInput.files[0];
+        // 1. Vérifie si une image est disponible
+        if (!window.scannedImageFile) {
+            throw new Error("Veuillez d'abord scanner une étiquette depuis l'onglet 'Scanner'.");
         }
 
-        if (!imageFile) {
-            throw new Error("Aucune étiquette scannée ou sélectionnée. Veuillez d'abord scanner une étiquette depuis l'onglet 'Scanner'.");
-        }
-
-        // 2. OCR avec Tesseract
-        const { data: { text } } = await Tesseract.recognize(imageFile, 'fra');
+        // 2. OCR avec Tesseract (multilingue)
+        const { data: { text } } = await Tesseract.recognize(
+            window.scannedImageFile,
+            'eng+fra+ita+spa'
+        );
         console.log("Texte extrait :", text);
 
-        // 3. Appel à l'API Gemini pour extraire les données
-        const prompt = `Analyse le texte suivant d'une étiquette de vin et extrais en format JSON (cuvee, domain, vintage, type, appellation, region) : ${text}`;
+        // 3. Prompt optimisé pour extraire les données du vin (même en italien/espagnol)
+        const prompt = `
+            Analyse le texte suivant d'une étiquette de vin (peut être en français, italien, espagnol ou anglais) et extrais les informations en JSON :
+            - cuvee (nom du vin)
+            - domain (domaine/producteur)
+            - vintage (millésime/année)
+            - type (rouge, blanc, rosé, etc.)
+            - appellation (AOC, DOC, etc.)
+            - region (région/pays)
+            - grapes (cépages, si disponibles)
+
+            Texte de l'étiquette :
+            ${text}
+
+            Réponds UNIQUEMENT avec un JSON valide, sans explication.
+        `;
+
+        // 4. Appel à l'API Gemini
         const reponseJson = await appelerGemini(prompt);
-
-        if (reponseJson) {
-            // 4. Remplissage automatique des champs
-            const data = JSON.parse(reponseJson);
-            const formFields = {
-                wineCuvee: data.cuvee || "",
-                wineDomain: data.domain || "",
-                wineVintage: data.vintage || "",
-                wineType: data.type || "",
-                wineAppellation: data.appellation || "",
-                wineRegion: data.region || ""
-            };
-
-            for (const [fieldId, value] of Object.entries(formFields)) {
-                const field = document.getElementById(fieldId);
-                if (field) field.value = value;
-            }
-
-            alert("Formulaire rempli avec succès !");
+        if (!reponseJson) {
+            throw new Error("Impossible d'analyser l'étiquette. Vérifiez votre clé API ou la qualité de l'image.");
         }
+
+        // 5. Remplit le formulaire
+        let data;
+        try {
+            data = JSON.parse(reponseJson);
+        } catch (e) {
+            throw new Error("Réponse invalide de l'IA. Veuillez réessayer.");
+        }
+
+        // Remplissage des champs (avec valeurs par défaut si vide)
+        const fields = {
+            wineCuvee: data.cuvee || "",
+            wineDomain: data.domain || data.producer || "",
+            wineVintage: data.vintage || "",
+            wineType: data.type || "",
+            wineAppellation: data.appellation || "",
+            wineRegion: data.region || "",
+            wineCountry: data.country || "France"  // Valeur par défaut
+        };
+
+        for (const [fieldId, value] of Object.entries(fields)) {
+            const field = document.getElementById(fieldId);
+            if (field) field.value = value;
+        }
+
+        alert("✅ Formulaire rempli avec succès !");
     } catch (error) {
         console.error("Erreur IA :", error);
-        alert("Erreur : " + error.message);
+        alert(`Erreur : ${error.message}`);
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
