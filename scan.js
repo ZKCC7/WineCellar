@@ -36,7 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
       showScanModal(result, file);
 
     } catch (err) {
-      setScanStatus('error', `✗ Erreur : ${err.message}`);
+      let msg = err.message || 'Erreur inconnue';
+      if (msg.includes('404'))        msg = '✗ Modèle Gemini introuvable — vérifiez votre clé API';
+      else if (msg.includes('429'))   msg = '✗ Quota dépassé — attendez 1 minute ou créez une nouvelle clé';
+      else if (msg.includes('quota')) msg = '✗ Quota épuisé — créez une nouvelle clé sur aistudio.google.com';
+      else if (msg.includes('API'))   msg = '✗ Clé API invalide — vérifiez dans le menu ☰';
+      setScanStatus('error', msg);
     }
 
     // Reset input pour permettre re-scan du même fichier
