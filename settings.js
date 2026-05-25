@@ -3,7 +3,7 @@
    ============================================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
-  // --- BASOULE DU MODE CLAIR / SOMBRE ---
+  // --- COMMUTATION ET PERSISTANCE DU MODE SOMBRE ---
   const themeToggle = document.getElementById("themeToggleBtn");
   if (themeToggle) {
     if (localStorage.getItem("theme") === "light") {
@@ -17,67 +17,68 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- CONFIGURATION DU DÉLAI D'ALERTE ---
+  // --- INITIALISATION DES DONNÉES EN MÉMOIRE ---
   const delayInput = document.getElementById("settingDelay");
   if (delayInput) {
     delayInput.value = localStorage.getItem("notifDelay") || "30";
   }
 
-  document.getElementById("btnSaveSettings")?.addEventListener("click", () => {
-    const delayVal = document.getElementById("settingDelay").value || "30";
-    localStorage.setItem("notifDelay", delayVal);
-    alert(`⚙️ Configuration mise à jour : ${delayVal} jours.`);
-    if (typeof loadAlerts === "function") loadAlerts();
-    if (typeof toggleMenu === "function") toggleMenu(); // refermer le menu
-  });
-
-  // --- CONFIGURATION CLÉ API GEMINI ---
   const apiKeyInput = document.getElementById("aiApiKey");
   if (apiKeyInput) {
     apiKeyInput.value = localStorage.getItem("gemini_api_key") || "";
   }
 
+  // --- SAUVEGARDES ---
+  document.getElementById("btnSaveSettings")?.addEventListener("click", () => {
+    const delayVal = document.getElementById("settingDelay").value || "30";
+    localStorage.setItem("notifDelay", delayVal);
+    alert(`⚙️ Seuil d'alerte mis à jour : ${delayVal} jours.`);
+    if (typeof loadAlerts === "function") loadAlerts();
+    if (typeof window.toggleMenu === "function") window.toggleMenu();
+  });
+
   document.getElementById("btnSaveAiKey")?.addEventListener("click", () => {
     const keyVal = document.getElementById("aiApiKey").value.trim();
     localStorage.setItem("gemini_api_key", keyVal);
-    alert("🔑 Clé API Gemini sauvegardée avec succès !");
-    if (typeof toggleMenu === "function") toggleMenu();
+    alert("🔑 Clé API Gemini configurée avec succès !");
+    if (typeof window.toggleMenu === "function") window.toggleMenu();
   });
 
-  // --- SUPPRESSION ENTIÈRE DE LA BASE ---
+  // --- ACTIONS EN BASE DE DONNÉES ---
   document.getElementById("btnClearDb")?.addEventListener("click", async () => {
-    if (confirm("⚠️ Souhaitez-vous effacer TOUTES les bouteilles enregistrées ?")) {
+    if (confirm("⚠️ Souhaitez-vous effacer TOUTES les bouteilles enregistrées en local ?")) {
       await dbClearAll();
       location.reload();
     }
   });
 
-  // --- INJECTION DES DONNÉES DÉMO DANS LA BASE ---
   document.getElementById("btnInjectDemo")?.addEventListener("click", async () => {
-    if (confirm("Injecter les bouteilles d'essai dans votre cave ?")) {
+    if (confirm("Charger les bouteilles d'essai dans votre cave ?")) {
       const today = new Date();
-      const expirationBientot = new Date(); expirationBientot.setDate(today.getDate() + 10);
-      const expirationFutur = new Date(); expirationFutur.setDate(today.getDate() + 400);
+      const dateProche = new Date(); dateProche.setDate(today.getDate() + 12);
+      const dateFutur = new Date(); dateFutur.setDate(today.getDate() + 500);
 
-      const simulationWines = [
+      const itemsDemo = [
         {
           id: "demo-1",
           identity: { cuvee: "Château Talbot", domain: "Château Talbot", vintage: "2018", type: "Rouge", appellation: "Saint-Julien", region: "Bordeaux", country: "France" },
-          quantity: 3, size: "75cl", location: "Clayette supérieure - Emplacement 1", barcode: "3123456789012",
-          aging: { drinkFrom: "2023", drinkTo: expirationFutur.toISOString().split('T')[0] }
+          quantity: 3, size: "75cl", location: "Clayette 1 - Fond", barcode: "3123456789012",
+          aging: { drinkFrom: "2023", drinkTo: dateFutur.toISOString().split('T')[0] }
         },
         {
           id: "demo-2",
-          identity: { cuvee: "Meursault Premier Cru", domain: "Domaine des Comtes Lafon", vintage: "2020", type: "Blanc", appellation: "Meursault", region: "Bourgogne", country: "France" },
-          quantity: 1, size: "75cl", location: "Casier Central - B1", barcode: "3234567890123",
-          aging: { drinkFrom: "2022", drinkTo: expirationBientot.toISOString().split('T')[0] }
+          identity: { cuvee: "Meursault Cru", domain: "Domaine des Comtes Lafon", vintage: "2020", type: "Blanc", appellation: "Meursault", region: "Bourgogne", country: "France" },
+          quantity: 1, size: "75cl", location: "Bac du bas", barcode: "3234567890123",
+          aging: { drinkFrom: "2022", drinkTo: dateProche.toISOString().split('T')[0] }
         }
       ];
 
-      for (const w of simulationWines) {
-        await dbUpdateWine(w.id, w);
+      for (const item of itemsDemo) {
+        if (typeof dbUpdateWine === "function") {
+          await dbUpdateWine(item.id, item);
+        }
       }
-      alert("🎉 Données de démonstration chargées !");
+      alert("🎉 Bouteilles d'essai injectées avec succès !");
       location.reload();
     }
   });

@@ -1,5 +1,5 @@
 /* ============================================================
-   ui.js — Navigation logicielle et Contrôles du Menu Hamburger
+   ui.js — Logique d'affichage des écrans et Menu Hamburger
    ============================================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -9,17 +9,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function toggleMenu() {
     const isNowOpen = sideMenu.classList.toggle("open");
-    overlay.style.display = isNowOpen ? "block" : "none";
+    if (overlay) {
+      overlay.style.display = isNowOpen ? "block" : "none";
+    }
   }
 
   if (menuBtn) menuBtn.addEventListener("click", toggleMenu);
   if (overlay) overlay.addEventListener("click", toggleMenu);
 
-  // Rendre accessible globalement pour fermer le menu après sauvegarde des réglages
+  // Rendre la fermeture disponible globalement
   window.toggleMenu = toggleMenu;
 });
 
-// Système unifié de navigation inter-écrans (Views)
+// Système unifié de routage des vues applicatives
 window.switchView = function(viewId) {
   document.querySelectorAll(".screen").forEach(screen => {
     screen.classList.remove("visible");
@@ -30,7 +32,7 @@ window.switchView = function(viewId) {
     targetView.classList.add("visible");
   }
 
-  // Fermeture automatique du menu hamburger si ouvert au changement de vue
+  // Si le menu hamburger est ouvert, on le referme proprement
   const sideMenu = document.getElementById("sideMenu");
   const overlay = document.getElementById("menuOverlay");
   if (sideMenu && sideMenu.classList.contains("open")) {
@@ -38,12 +40,12 @@ window.switchView = function(viewId) {
     if (overlay) overlay.style.display = "none";
   }
 
-  // Mise à jour de la surbrillance des onglets du bas
+  // Met à jour la surbrillance de l'onglet actif dans le bandeau inférieur
   if (typeof setActiveTab === "function") {
     setActiveTab(viewId);
   }
 
-  // Déclencheurs de chargement dynamiques selon l'écran actif
+  // Rappels de chargement dynamique de données selon la vue ciblée
   if (viewId === "view-list" && typeof renderWineList === "function") renderWineList();
   if (viewId === "view-inventory" && typeof loadInventory === "function") loadInventory();
   if (viewId === "view-alerts" && typeof loadAlerts === "function") loadAlerts();

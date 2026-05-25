@@ -1,5 +1,5 @@
 /* ============================================================
-   scan.js — Traitement OCR (Tesseract) & Requête Internet Gemini
+   scan.js — Pipeline OCR local + Recherche Web par Gemini Pro
    ============================================================ */
 
 async function analyserPhoto() {
@@ -8,114 +8,113 @@ async function analyserPhoto() {
   const scanResultView = document.getElementById("scanResult");
 
   if (!fileInput.files || fileInput.files.length === 0) {
-    textStatus.textContent = "Aucune photo sélectionnée.";
+    textStatus.textContent = "Aucune image sélectionnée.";
     return;
   }
 
-  textStatus.innerHTML = "⏳ Analyse de l'image (OCR en cours)...";
+  textStatus.innerHTML = "⚡ Étape 1 : Lecture de l'étiquette par OCR...";
   if (scanResultView) scanResultView.style.display = "none";
 
   const imageFile = fileInput.files[0];
 
   try {
-    // 1. Numérisation textuelle locale via Tesseract.js
+    // 1. Exécution locale de Tesseract.js pour extraire le texte brut visible
     const { data } = await Tesseract.recognize(imageFile, "fra+eng");
-    const extractedRawText = data.text;
+    const textOCR = data.text;
 
-    if (!extractedRawText || extractedRawText.trim().length === 0) {
-      textStatus.textContent = "❌ Lecture de l'étiquette impossible. Assurez-vous que le texte soit lisible.";
+    if (!textOCR || textOCR.trim().length === 0) {
+      textStatus.textContent = "❌ Impossible d'extraire des caractères nets. Améliorez la lumière et reprenez la photo.";
       return;
     }
 
-    textStatus.innerHTML = "🌍 Recherche des spécificités du vin sur Internet (IA)...";
+    textStatus.innerHTML = "🔍 Étape 2 : Recherche de l'identité du vin sur Internet (IA)...";
 
-    // 2. Préparation du prompt d'analyse et de recherche globale pour Gemini
-    const systemQueryPrompt = `
-      Tu es un sommelier professionnel connecté à Internet. Analyse les informations issues de ce scan d'étiquette de vin : "${extractedRawText}".
-      Recherche sur internet les données correspondantes exactes pour ce vin (identifie le domaine, la cuvée exacte, l'appellation, le millésime, le type/couleur du vin).
-      Génère et retourne UNIQUEMENT un objet JSON standardisé brut, sans enrobage markdown (sans \`\`\`json et sans \`\`\`), respectant cette structure exacte :
+    // 2. Construction du prompt forçant Gemini à utiliser sa connexion Internet
+    const promptInternetSearch = `
+      Tu es un expert sommelier connecté au Web. Analyse le texte brut suivant extrait d'une étiquette de vin : "${textOCR}".
+      Recherche sur Internet de quel vin exact il s'agit pour trouver son Domaine, sa Cuvée précise, son Millésime, sa Couleur, son Appellation et sa Région de production.
+      Fournis impérativement et UNIQUEMENT un code JSON brut (sans balise ni enrobage markdown, pas de \`\`\`json ou \`\`\`), calqué exactement sur ce format :
       {
-        "cuvee": "Nom précis de la cuvée",
-        "domain": "Nom du domaine ou château",
-        "vintage": "Année trouvée (ex: 2020) ou N.V.",
+        "cuvee": "Nom de la cuvée ou grand vin",
+        "domain": "Nom du Domaine ou Château",
+        "vintage": "Année (ex: 2019) ou N.V. si non millésimé",
         "type": "Rouge ou Blanc ou Rosé",
-        "appellation": "Appellation AOC/AOP",
-        "region": "Région de production",
-        "country": "Pays"
+        "appellation": "Appellation d'Origine",
+        "region": "Région viticole",
+        "country": "Pays d'origine"
       }
     `;
 
     if (typeof appelerGemini !== "function") {
-      textStatus.textContent = "❌ Liaison technique manquante avec l'intégration de l'IA (ai.js).";
+      textStatus.textContent = "❌ Erreur de liaison : le module de communication IA (ai.js) est indisponible.";
       return;
     }
 
-    // 3. Soumission à l'API Gemini connectée
-    const responseTextIA = await appelerGemini(systemQueryPrompt);
+    // 3. Appel de l'API Gemini
+    const reponseIA = await appelerGemini(promptInternetSearch);
 
-    if (!responseTextIA || responseTextIA.trim().length === 0) {
-      textStatus.textContent = "❌ Aucune donnée renvoyée par l'IA. Configurez votre clé API Gemini.";
+    if (!reponseIA || reponseIA.trim().length === 0) {
+      textStatus.textContent = "❌ L'IA n'a pas répondu. Vérifiez votre clé API dans les Options.";
       return;
     }
 
     try {
-      // Nettoyage au cas où l'IA renverrait du texte ou des blocs markdown
-      const sanitizedJsonStr = responseTextIA.replace(/```json/g, "").replace(/```/g, "").trim();
-      const parsedWineObject = JSON.parse(sanitizedJsonStr);
+      // Nettoyage de sécurité si l'IA inclut des blocs markdown de code
+      const cleanJsonStr = reponseIA.replace(/```json/g, "").replace(/```/g, "").trim();
+      const vinDataInternet = JSON.parse(cleanJsonStr);
 
-      textStatus.innerHTML = "✅ Recherche Internet terminée !";
+      textStatus.innerHTML = "✅ Spécifications trouvées sur Internet !";
 
       if (scanResultView) {
         scanResultView.style.display = "block";
         scanResultView.innerHTML = `
-          <h3 style="margin-top:0; color:#60a5fa; font-size:1.1rem;">🌍 Résultats Internet</h3>
-          <p style="margin:6px 0;"><strong>Domaine :</strong> ${parsedWineObject.domain || 'Inconnu'}</p>
-          <p style="margin:6px 0;"><strong>Cuvée :</strong> ${parsedWineObject.cuvee || 'Non trouvée'}</p>
-          <p style="margin:6px 0;"><strong>Millésime :</strong> ${parsedWineObject.vintage || 'Inconnu'}</p>
-          <p style="margin:6px 0;"><strong>Type :</strong> ${parsedWineObject.type || 'Rouge'}</p>
-          <p style="margin:6px 0;"><strong>Région :</strong> ${parsedWineObject.region || 'Inconnue'} (${parsedWineObject.country || 'France'})</p>
-          <p style="margin:6px 0;"><strong>Appellation :</strong> ${parsedWineObject.appellation || 'Non spécifiée'}</p>
+          <h3 style="margin-top:0; color:#60a5fa; font-size:1.05rem; display:flex; align-items:center; gap:6px;">🌍 Données d'Internet</h3>
+          <p style="margin:4px 0;"><strong>Domaine :</strong> ${vinDataInternet.domain || 'Non trouvé'}</p>
+          <p style="margin:4px 0;"><strong>Cuvée :</strong> ${vinDataInternet.cuvee || 'Non trouvée'}</p>
+          <p style="margin:4px 0;"><strong>Millésime :</strong> ${vinDataInternet.vintage || 'Inconnu'}</p>
+          <p style="margin:4px 0;"><strong>Couleur :</strong> ${vinDataInternet.type || 'Rouge'}</p>
+          <p style="margin:4px 0;"><strong>Appellation :</strong> ${vinDataInternet.appellation || 'Non spécifiée'}</p>
+          <p style="margin:4px 0;"><strong>Origine :</strong> ${vinDataInternet.region || 'Inconnue'} (${vinDataInternet.country || 'France'})</p>
           
-          <button class="btn" style="width:100%; margin-top:15px; background:#10b981; padding:12px; font-weight:600;"
-            onclick="preRemplirDepuisScan(${JSON.stringify(parsedWineObject).replace(/"/g, '&quot;')})">
-            📥 Pré-remplir le formulaire d'ajout
+          <button class="btn" style="width:100%; margin-top:12px; background:#10b981; padding:10px; font-weight:600;"
+            onclick="preRemplirFormulaireDepuisScan(${JSON.stringify(vinDataInternet).replace(/"/g, '&quot;')})">
+            📥 Importer et pré-remplir la fiche
           </button>
         `;
       }
-    } catch (parseError) {
-      console.error(parseError);
-      textStatus.textContent = "❌ Structure de réponse IA incorrecte. Échec de la structuration.";
+
+    } catch (errParsing) {
+      console.error("Erreur parsing JSON IA :", errParsing);
+      textStatus.textContent = "❌ Données récupérées sur Internet mais impossibles à structurer.";
     }
 
-  } catch (technicalError) {
-    console.error(technicalError);
-    textStatus.textContent = "❌ Une erreur est survenue pendant le scan de la photo.";
+  } catch (errGlobal) {
+    console.error(errGlobal);
+    textStatus.textContent = "❌ Échec technique lors du traitement de l'image.";
   }
 }
 
-// Remplissage automatique des champs et basculement vers l'écran d'ajout
-window.preRemplirSinceScan = function(wineData) {
-  if (!wineData) return;
+// Transfert automatique vers le formulaire d'ajout
+window.preRemplirFormulaireDepuisScan = function(data) {
+  if (!data) return;
 
   if (typeof switchView === "function") {
     switchView("view-add");
   }
 
-  if (wineData.cuvee && document.getElementById("wineCuvee")) document.getElementById("wineCuvee").value = wineData.cuvee;
-  if (wineData.domain && document.getElementById("wineDomain")) document.getElementById("wineDomain").value = wineData.domain;
-  if (wineData.vintage && document.getElementById("wineVintage")) document.getElementById("wineVintage").value = wineData.vintage;
-  if (wineData.type && document.getElementById("wineType")) document.getElementById("wineType").value = wineData.type;
-  if (wineData.appellation && document.getElementById("wineAppellation")) document.getElementById("wineAppellation").value = wineData.appellation;
-  if (wineData.region && document.getElementById("wineRegion")) document.getElementById("wineRegion").value = wineData.region;
-  if (wineData.country && document.getElementById("wineCountry")) document.getElementById("wineCountry").value = wineData.country;
+  // Remplissage des champs de la vue HTML
+  if (data.cuvee && document.getElementById("wineCuvee")) document.getElementById("wineCuvee").value = data.cuvee;
+  if (data.domain && document.getElementById("wineDomain")) document.getElementById("wineDomain").value = data.domain;
+  if (data.vintage && document.getElementById("wineVintage")) document.getElementById("wineVintage").value = data.vintage;
+  if (data.type && document.getElementById("wineType")) document.getElementById("wineType").value = data.type;
+  if (data.appellation && document.getElementById("wineAppellation")) document.getElementById("wineAppellation").value = data.appellation;
+  if (data.region && document.getElementById("wineRegion")) document.getElementById("wineRegion").value = data.region;
+  if (data.country && document.getElementById("wineCountry")) document.getElementById("wineCountry").value = data.country;
 };
 
-// Alias global robuste pour l'UI
-window.preRemplirDepuisScan = window.preRemplirSinceScan;
-
 document.addEventListener("DOMContentLoaded", () => {
-  const captureElement = document.getElementById("scanInput");
-  if (captureElement) {
-    captureElement.addEventListener("change", analyserPhoto);
+  const fileInputEl = document.getElementById("scanInput");
+  if (fileInputEl) {
+    fileInputEl.addEventListener("change", analyserPhoto);
   }
 });
