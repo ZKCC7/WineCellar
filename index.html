@@ -27,25 +27,8 @@
       --bg-card: #ffffff;
       --border-color: #e5e7eb;
       --radius-md: 12px;
-      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
       --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      
-      --urgency-high: #9b1c1c;
-      --urgency-high-bg: #fde8e8;
-      --urgency-med: #92400e;
-      --urgency-med-bg: #fef3c7;
-      --urgency-low: #0288d1;
-      --urgency-low-bg: #e1f5fe;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: var(--bg-app);
-      color: var(--text-main);
-      line-height: 1.5;
-      padding-bottom: 75px;
     }
 
     body.dark {
@@ -55,6 +38,14 @@
       --text-muted: #9ca3af;
       --border-color: #374151;
       --primary-light: #372226;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      padding-bottom: 80px;
     }
 
     header {
@@ -69,25 +60,17 @@
       justify-content: space-between;
       align-items: center;
     }
-
     header h1 { font-size: 1.2rem; font-weight: 700; }
 
     main { max-width: 1200px; margin: 0 auto; padding: 16px; }
 
-    /* Gestion des écrans par app.js */
-    .screen {
-      display: none;
-      animation: fadeIn 0.2s ease-out;
-    }
-    .screen.visible { display: block; }
+    /* Système d'affichage de ton projet */
+    .screen { display: none; }
+    .screen.visible { display: block; animation: fadeIn 0.2s ease-out; }
 
     .screen h2 {
-      font-size: 1.4rem;
-      margin-bottom: 20px;
-      color: var(--primary);
-      font-weight: 700;
-      border-bottom: 2px solid var(--primary-light);
-      padding-bottom: 6px;
+      font-size: 1.4rem; margin-bottom: 20px; color: var(--primary); font-weight: 700;
+      border-bottom: 2px solid var(--primary-light); padding-bottom: 6px;
     }
     body.dark .screen h2 { color: #f3f4f6; }
 
@@ -96,76 +79,40 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Barre de navigation basse */
+    /* Nouvelle Barre Basse */
     nav#bottomNav {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--bg-card);
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-around;
-      padding: 6px 4px;
-      z-index: 110;
-      box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--bg-card); border-top: 1px solid var(--border-color);
+      display: flex; justify-content: space-around; padding: 6px 2px;
+      z-index: 110; box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
     }
 
     .navItem {
-      background: none; border: none;
-      color: var(--text-muted);
-      padding: 6px; font-size: 0.7rem; font-weight: 500;
-      cursor: pointer; display: flex; flex-direction: column;
-      align-items: center; gap: 4px; flex: 1;
+      background: none; border: none; color: var(--text-muted);
+      padding: 6px; font-size: 0.7rem; font-weight: 500; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1;
       border-radius: var(--radius-md); transition: var(--transition);
     }
-
     .navItem .icon { font-size: 1.2rem; }
     .navItem.active { color: var(--primary); font-weight: 700; background-color: var(--primary-light); }
     body.dark .navItem.active { color: #fca5a5; }
 
-    /* Boutons & Cartes */
     .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 16px; box-shadow: var(--shadow); margin-bottom: 16px;
+      background: var(--bg-card); border: 1px solid var(--border-color);
+      border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow); margin-bottom: 16px;
     }
-
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 16px; font-size: 0.9rem; font-weight: 600;
-      border-radius: var(--radius-md); border: none; cursor: pointer; transition: var(--transition);
+      padding: 10px 16px; font-size: 0.9rem; font-weight: 600; border-radius: var(--radius-md);
+      border: none; cursor: pointer; transition: var(--transition);
     }
     .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-hover); }
-
-    /* Inputs */
     input, select, textarea {
-      width: 100%; padding: 10px; font-family: inherit; font-size: 0.95rem;
-      border: 1px solid var(--border-color); border-radius: var(--radius-md);
-      background: var(--bg-card); color: var(--text-main); margin-top: 4px;
+      width: 100%; padding: 10px; border: 1px solid var(--border-color);
+      border-radius: var(--radius-md); background: var(--bg-card); color: var(--text-main); margin-top: 4px;
     }
-    input:focus, select:focus { outline: none; border-color: var(--primary); }
-
     .form-group { margin-bottom: 12px; }
-    label { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
-
-    /* Design Alertes */
-    .wine-alert-card {
-      background: var(--bg-card); border: 1px solid var(--border-color);
-      border-radius: var(--radius-md); box-shadow: var(--shadow);
-      position: relative; overflow: hidden; display: flex; flex-direction: column; margin-bottom: 12px;
-    }
-    .card-badge { position: absolute; top: 12px; right: 12px; padding: 2px 6px; border-radius: 20px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase; }
-    .wine-alert-card.urgency-high { border-left: 5px solid var(--urgency-high); }
-    .wine-alert-card.urgency-high .card-badge { background: var(--urgency-high-bg); color: var(--urgency-high); }
-    .wine-alert-card.urgency-med { border-left: 5px solid var(--urgency-med); }
-    .wine-alert-card.urgency-med .card-badge { background: var(--urgency-med-bg); color: var(--urgency-med); }
-    .wine-alert-card.urgency-low { border-left: 5px solid var(--urgency-low); }
-    .wine-alert-card.urgency-low .card-badge { background: var(--urgency-low-bg); color: var(--urgency-low); }
-    
-    .card-actions-inline { display: flex; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.02); }
-    .card-actions-inline button { flex: 1; padding: 10px; background: none; border: none; font-size: 0.8rem; font-weight: 500; cursor: pointer; color: var(--text-muted); }
-    .card-actions-inline button:first-child { border-right: 1px solid var(--border-color); }
+    label { font-size: 0.85rem; font-weight: 600; }
   </style>
 </head>
 <body class="light">
@@ -177,84 +124,126 @@
 
   <main>
     
-    <section id="listView" class="screen visible">
+    <section id="view-list" class="screen visible">
       <h2>📦 Ma cave</h2>
-      <div id="winesList"></div>
+      <div style="margin-bottom:15px; display:flex; gap:10px;">
+        <input type="text" id="invSearch" placeholder="Rechercher une cuvée, un domaine...">
+        <select id="invFilterType" style="width:130px;">
+          <option value="">Tous</option>
+          <option value="Rouge">Rouge</option>
+          <option value="Blanc">Blanc</option>
+          <option value="Rosé">Rosé</option>
+        </select>
+      </div>
+      <div class="card" style="overflow-x:auto; padding:0;">
+        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.9rem;">
+          <thead>
+            <tr style="background:rgba(0,0,0,0.02); border-bottom:1px solid var(--border-color);">
+              <th style="padding:12px;">Cuvée</th>
+              <th style="padding:12px;">Type</th>
+              <th style="padding:12px;">Qté</th>
+              <th style="padding:12px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody"></tbody>
+        </table>
+      </div>
     </section>
 
-    <section id="formView" class="screen">
-      <h2>Ajouter une bouteille</h2>
+    <section id="view-add" class="screen">
+      <h2 id="formTitle">Ajouter une bouteille</h2>
       <div class="card">
-        <form id="wineForm">
+        <form id="wineForm" onsubmit="event.preventDefault();">
+          <div class="form-group"><label>Nom de la cuvée *</label><input type="text" id="wineCuvee" required></div>
+          <div class="form-group"><label>Domaine / Producteur</label><input type="text" id="wineDomain"></div>
+          <div class="form-group"><label>Millésime</label><input type="number" id="wineVintage"></div>
           <div class="form-group">
-            <label>Nom de la cuvée *</label>
-            <input type="text" id="cuvee" required placeholder="Ex: Les Granits">
+            <label>Couleur</label>
+            <select id="wineType">
+              <option value="Rouge">Rouge</option>
+              <option value="Blanc">Blanc</option>
+              <option value="Rosé">Rosé</option>
+            </select>
           </div>
-          <div class="form-group">
-            <label>Producteur / Domaine</label>
-            <input type="text" id="producer" placeholder="Ex: Chapoutier">
-          </div>
-          <div class="form-group">
-            <label>Millésime</label>
-            <input type="number" id="vintage" placeholder="2020">
-          </div>
-          <div class="form-group">
-            <label>Région</label>
-            <input type="text" id="region" placeholder="Ex: Vallée du Rhône">
-          </div>
-          <div class="form-group">
-            <label>Date limite de garde (Alerte)</label>
-            <input type="date" id="drinkTo">
-          </div>
-          <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;">Enregistrer</button>
+          <div class="form-group"><label>Appellation</label><input type="text" id="wineAppellation"></div>
+          <div class="form-group"><label>Région</label><input type="text" id="wineRegion"></div>
+          <div class="form-group"><label>Pays</label><input type="text" id="wineCountry" value="France"></div>
+          <div class="form-group"><label>Quantité</label><input type="number" id="wineQty" value="1"></div>
+          <div class="form-group"><label>Format</label><input type="text" id="wineSize" value="75cl"></div>
+          <div class="form-group"><label>Emplacement Cave</label><input type="text" id="wineLocation"></div>
+          <div class="form-group"><label>Code-barres</label><input type="text" id="wineBarcode"></div>
+          <div class="form-group"><label>Prêt à boire (A partir de)</label><input type="number" id="wineDrinkFrom"></div>
+          <div class="form-group"><label>Garder jusqu'à (Date limite Alerte)</label><input type="date" id="wineDrinkTo"></div>
+          <button type="button" id="btnSaveWine" class="btn btn-primary" style="width:100%; margin-top:10px;">Enregistrer la référence</button>
         </form>
       </div>
     </section>
 
-    <section id="scanView" class="screen">
-      <h2>📷 Scan de bouteille (OCR)</h2>
-      <div class="card" style="text-align: center;">
-        <p style="margin-bottom:12px;">Prends une photo de l'étiquette pour identifier automatiquement la bouteille.</p>
-        <button class="btn btn-primary" id="scanBtn">📸 Prendre une photo</button>
-        <input type="file" id="scanInput" accept="image/*" capture="environment" style="display: none;" />
-        <p id="scanText" style="margin-top:15px; font-weight:500; color:var(--text-muted);"></p>
-        <div id="scanResult" style="margin-top:15px;"></div>
-      </div>
-    </section>
-
-    <section id="alertsView" class="screen">
-      <h2>🔔 Alertes de garde</h2>
-      <div id="alertsContent">Chargement des alertes...</div>
-    </section>
-
-    <section id="shopView" class="screen">
-      </section>
-
-    <section id="inventoryView" class="screen">
+    <section id="view-inventory" class="screen">
       <h2>🍾 Inventaire rapide</h2>
       <div id="inventoryContent"></div>
     </section>
 
-    <section id="statsView" class="screen">
-      <h2>📊 Statistiques</h2>
+    <section id="view-alerts" class="screen">
+      <h2>🔔 Alertes de garde</h2>
+      <div id="alertsContent"></div>
+    </section>
+
+    <section id="view-shop" class="screen">
+      <h2>🛒 Liste d'achats</h2>
+      <div class="card">
+        <form id="shopForm">
+          <div class="form-group" style="display:flex; gap:8px; margin:0;">
+            <input type="text" id="shopItemText" placeholder="Ex: Acheter 3 bouteilles de Meursault..." style="margin:0;">
+            <button type="submit" class="btn btn-primary">➕</button>
+          </div>
+        </form>
+      </div>
+      <ul id="shopListContainer" style="list-style:none; padding:0;"></ul>
+    </section>
+
+    <section id="view-scan" class="screen">
+      <h2>📷 Scanner une étiquette</h2>
+      <div class="card" style="text-align:center;">
+        <button class="btn btn-primary" id="scanBtn">📸 Prendre une photo</button>
+        <input type="file" id="scanInput" accept="image/*" capture="environment" style="display:none;">
+        <p id="scanText" style="margin-top:15px; color:var(--text-muted); font-weight:500;"></p>
+        <div id="scanResult" style="margin-top:15px;"></div>
+      </div>
+    </section>
+
+    <section id="view-stats" class="screen">
+      <h2>📊 Statistiques de la cave</h2>
       <div id="statsContent"></div>
     </section>
 
-    <section id="settingsView" class="screen">
+    <section id="view-settings" class="screen">
       <h2>⚙️ Paramètres</h2>
       <div class="card">
-        <h3>🌙 Mode sombre</h3>
-        <label style="display:flex; align-items:center; gap:10px; margin-top:8px; cursor:pointer;">
+        <h3>🌙 Mode Sombre</h3>
+        <label style="display:flex; align-items:center; gap:10px; margin-top:10px; cursor:pointer;">
           <input type="checkbox" id="darkToggle" style="width:auto; margin:0;"> Activer le mode sombre
         </label>
       </div>
       <div class="card">
-        <h3>🔔 Délai des notifications</h3>
-        <select id="notifDelay">
-          <option value="7">7 jours</option>
-          <option value="15">15 jours</option>
-          <option value="30">30 jours</option>
-        </select>
+        <h3>🔔 Délai d'alerte</h3>
+        <div class="form-group" style="margin-top:8px;">
+          <select id="settingDelay">
+            <option value="7">7 jours avant échéance</option>
+            <option value="15">15 jours avant échéance</option>
+            <option value="30">30 jours avant échéance</option>
+            <option value="90">90 jours avant échéance</option>
+          </select>
+        </div>
+        <button id="btnSaveSettings" class="btn btn-primary" style="font-size:0.8rem; padding:8px 12px;">Sauvegarder le délai</button>
+      </div>
+      <div class="card" style="border: 1px solid #fecaca;">
+        <h3 style="color:#dc2626;">⚠ Zone de danger</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin:4px 0 12px 0;">Ces actions écrasent ou suppriment vos données locales.</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="btnInjectDemo" class="btn" style="background:#ef4444; color:white; font-size:0.8rem; padding:8px 12px;">Injecter la démo</button>
+          <button id="btnClearDb" class="btn" style="background:#b91c1c; color:white; font-size:0.8rem; padding:8px 12px;">Vider la base</button>
+        </div>
       </div>
     </section>
 
@@ -271,12 +260,12 @@
   </nav>
 
   <script src="db.js"></script>
+  <script src="inventory.js"></script>
   <script src="settings.js"></script>
   <script src="stats.js"></script>
   <script src="alerts.js"></script>
   <script src="shop.js"></script>
   <script src="scan.js"></script>
-  <script src="inventory.js"></script>
   <script src="pdf.js"></script>
   <script src="app.js"></script>
 </body>

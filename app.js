@@ -2,21 +2,24 @@
    app.js — Gestion unifiée de la navigation par onglets
    =========================================================== */
 
-// Affiche un écran et cache les autres
-function showScreen(screenId) {
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("visible"));
-  const targetScreen = document.getElementById(screenId);
-  if (targetScreen) {
-    targetScreen.classList.add("visible");
-  } else {
-    console.error(`❌ Écran #${screenId} introuvable dans le DOM.`);
-  }
-}
+// Met à jour la surbrillance visuelle de l'onglet actif dans la barre basse
+function setActiveTab(viewId) {
+  // Convertit l'ID de la vue en ID de l'onglet correspondant
+  const screenMapping = {
+    "view-list": "listView",
+    "view-inventory": "inventoryView",
+    "view-alerts": "alertsView",
+    "view-shop": "shopView",
+    "view-scan": "scanView",
+    "view-stats": "statsView",
+    "view-settings": "settingsView",
+    "view-add": "" // Pas d'onglet actif pour le formulaire d'ajout direct
+  };
 
-// Gère la mise en surbrillance de l'onglet actif en bas
-function setActiveTab(screenId) {
+  const activeTabId = screenMapping[viewId];
+
   document.querySelectorAll(".navItem").forEach(item => {
-    if (item.dataset.screen === screenId) {
+    if (item.dataset.screen === activeTabId) {
       item.classList.add("active");
     } else {
       item.classList.remove("active");
@@ -24,30 +27,46 @@ function setActiveTab(screenId) {
   });
 }
 
-// Initialisation de la navigation au chargement
+// Intercepte et enrobe la fonction globale existante switchView pour gérer les onglets
+const originalSwitchView = window.switchView;
+window.switchView = function(viewId) {
+  if (typeof originalSwitchView === "function") {
+    originalSwitchView(viewId);
+  } else {
+    // Mode de secours si initialisation précoce
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("visible"));
+    const target = document.getElementById(viewId);
+    if (target) target.classList.add("visible");
+  }
+  
+  // Met à jour les styles des onglets
+  setActiveTab(viewId);
+};
+
+// Initialisation au chargement du DOM
 document.addEventListener("DOMContentLoaded", () => {
   
   // Écouteur sur chaque onglet de la barre inférieure
   document.querySelectorAll(".navItem").forEach(item => {
     item.addEventListener("click", () => {
-      const targetScreen = item.dataset.screen;
-      if (!targetScreen) return;
+      const targetTab = item.dataset.screen;
+      if (!targetTab) return;
 
-      // 1. Changer d'écran
-      showScreen(targetScreen);
+      // Correspondance vers tes véritables IDs de sections HTML (<section id="view-...">)
+      const viewMapping = {
+        "listView": "view-list",
+        "inventoryView": "view-inventory",
+        "alertsView": "view-alerts",
+        "shopView": "view-shop",
+        "scanView": "view-scan",
+        "statsView": "view-stats",
+        "settingsView": "view-settings"
+      };
+
+      const targetView = viewMapping[targetTab];
       
-      // 2. Mettre à jour l'onglet actif
-      setActiveTab(targetScreen);
-
-      // 3. Déclencher le chargement des scripts associés d'origine
-      if (targetScreen === "inventoryView" && typeof loadInventory === "function") {
-        loadInventory();
-      }
-      if (targetScreen === "alertsView" && typeof loadAlerts === "function") {
-        loadAlerts();
-      }
-      if (targetScreen === "statsView" && typeof loadStats === "function") {
-        loadStats();
+      if (targetView) {
+        window.switchView(targetView);
       }
     });
   });
@@ -56,8 +75,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const addBtn = document.getElementById("addBtn");
   if (addBtn) {
     addBtn.addEventListener("click", () => {
-      showScreen("formView");
-      setActiveTab("formView"); // Décoche les onglets du bas pour la clarté
+      window.switchView("view-add");
     });
   }
+  
+  // Lance la vue par défaut sans planter
+  window.switchView("view-list");
 });
