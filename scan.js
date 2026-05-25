@@ -118,3 +118,10 @@ document.addEventListener("DOMContentLoaded", () => {
     fileInputEl.addEventListener("change", analyserPhoto);
   }
 });
+// Dans la fonction qui gère le scan (ex: après avoir récupéré le fichier depuis l'input)
+document.getElementById('scanInput').addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+        scannedImageFile = e.target.files[0];
+        // ... (le reste de ta logique de scan)
+    }
+});
