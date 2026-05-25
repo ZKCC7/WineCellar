@@ -1,10 +1,14 @@
 /* ===========================
    THEME GLOBAL
 =========================== */
+html, body {
+    
+    padding: 0;
+    background-color: #111;
+}
 
 body {
   font-family: system-ui, -apple-system, sans-serif;
-  margin: 0;
   background: #111;
   color: #eee;
   transition: background 0.3s, color 0.3s;
@@ -32,7 +36,6 @@ body.light header {
 }
 
 header h1 {
-  margin: 0;
   font-size: 1.2rem;
 }
 
@@ -65,6 +68,17 @@ header button {
 body.light .btn.secondary {
   background: #ccc;
   color: #000;
+}
+.btn-scan {
+    display: block;
+    background: #c62828;
+    color: white;
+    padding: 12px;
+    text-align: center;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    text-decoration: none;
+    font-weight: bold;
 }
 
 /* ===========================
