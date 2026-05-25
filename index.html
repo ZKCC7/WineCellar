@@ -43,6 +43,24 @@
   </div>
 </section>
 
+    <section id="view-scan" class="screen">
+    <div style="padding:15px; text-align:center;">
+        <h2 style="text-align:left; margin-top:0;">Scanner une étiquette</h2>
+        <p style="text-align:left; color:var(--text-muted); font-size:0.9rem; margin-bottom:25px;">
+            Prenez une photo en gros plan de l'étiquette.
+        </p>
+        <div style="margin:35px 0;">
+            <label for="scanInput" class="btn" style="padding:16px 32px; font-size:1.1rem; display:inline-block; cursor:pointer; border-radius:12px; font-weight:600; background:#4f46e5;">
+                📸 Ouvrir l'appareil photo
+            </label>
+            <!-- ✅ Ajoute ou vérifie cette ligne -->
+            <input type="file" id="scanInput" accept="image/*" capture="environment" style="display:none;" />
+        </div>
+        <p id="scanText" style="margin-top:20px; font-weight:500; color:#60a5fa; min-height:24px;"></p>
+        <div id="scanResult" class="card" style="margin-top:20px; text-align:left; display:none;"></div>
+    </div>
+</section>
+
     <section id="view-add" class="screen">
       <div style="padding:15px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
