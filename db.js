@@ -88,4 +88,22 @@ async function dbFindSimilarWine(name) {
 ------------------------------------------------------------ */
 function dbGenerateId() {
   return Date.now().toString() + Math.floor(Math.random() * 1000);
+};
+/* ------------------------------------------------------------
+   Gestion de la liste d'achats (Shopping List)
+------------------------------------------------------------ */
+
+// Pour récupérer les items
+async function dbGetShopItems() {
+  return await db.collection('shop').get();
+}
+
+// Pour sauvegarder un nouvel item
+async function dbSaveShopItem(item) {
+  await db.collection('shop').add(item);
+}
+
+// Pour supprimer un item
+async function dbDeleteShopItem(id) {
+  await db.collection('shop').doc({ id }).delete();
 }
