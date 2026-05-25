@@ -33,6 +33,16 @@
   <main style="padding-bottom: 80px;">
     <!-- ... (les autres sections restent inchangées) ... -->
 
+    <section id="view-list" class="screen visible">
+  <div style="padding:15px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+      <h2 style="margin:0;">Fiches de dégustation</h2>
+      <button onclick="startVoiceSearch()" class="btn" style="background:#4b5563; padding:6px 12px; font-size:0.85rem;">🎙️ Parler</button>
+    </div>
+    <div id="wineList"></div>
+  </div>
+</section>
+
     <section id="view-add" class="screen">
       <div style="padding:15px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">

@@ -137,7 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 
 // Variable globale pour stocker l'image scannée (partagée avec ai.js)
-let scannedImageFile = null;
+// Utiliser la variable globale déjà déclarée dans ai.js
+window.scannedImageFile = window.scannedImageFile || null;
 
 // Fonction pour démarrer le scan
 function startScan() {
