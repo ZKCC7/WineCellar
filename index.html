@@ -53,7 +53,6 @@
   </nav>
 
   <main style="padding-bottom: 80px;">
-    
     <section id="view-list" class="screen visible">
       <div style="padding:15px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -116,14 +115,12 @@
         <p style="text-align:left; color:var(--text-muted); font-size:0.9rem; margin-bottom:25px;">
           Prenez une photo en gros plan de l'étiquette. L'intelligence artificielle Gemini va l'identifier sur Internet pour construire sa fiche technique.
         </p>
-        
         <div style="margin:35px 0;">
           <label for="scanInput" class="btn" style="padding:16px 32px; font-size:1.1rem; display:inline-block; cursor:pointer; border-radius:12px; font-weight:600; background:#4f46e5; box-shadow:0 4px 14px rgba(79,70,229,0.4);">
             📸 Ouvrir l'appareil photo
           </label>
           <input type="file" id="scanInput" accept="image/*" capture="environment" style="display:none;" />
         </div>
-        
         <p id="scanText" style="margin-top:20px; font-weight:500; color:#60a5fa; min-height:24px;"></p>
         <div id="scanResult" class="card" style="margin-top:20px; text-align:left; display:none;"></div>
       </div>
@@ -145,13 +142,10 @@
         
         <form id="wineForm" onsubmit="saveWineForm(event)" style="display:grid; gap:10px;">
           <input type="hidden" id="wineId" />
-          
           <label>Cuvée / Nom du vin *</label>
           <input type="text" id="wineCuvee" required style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--background-cards); color:var(--text-primary);" />
-          
           <label>Domaine / Château / Producteur</label>
           <input type="text" id="wineDomain" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--background-cards); color:var(--text-primary);" />
-          
           <div style="display:flex; gap:10px;">
             <div style="flex:1;">
               <label>Millésime (Année)</label>
@@ -166,10 +160,8 @@
               </select>
             </div>
           </div>
-
           <label>Appellation</label>
           <input type="text" id="wineAppellation" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--background-cards); color:var(--text-primary);" />
-
           <div style="display:flex; gap:10px;">
             <div style="flex:1;">
               <label>Région</label>
@@ -180,7 +172,6 @@
               <input type="text" id="wineCountry" value="France" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--background-cards); color:var(--text-primary); box-sizing:border-box;" />
             </div>
           </div>
-
           <div style="display:flex; gap:10px;">
             <div style="flex:1;">
               <label>Quantité disponible *</label>
@@ -191,13 +182,10 @@
               <input type="text" id="wineSize" value="75cl" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--background-cards); color:var(--text-primary); box-sizing:border-box;" />
             </div>
           </div>
-
           <label>Emplacement précis dans votre cave</label>
           <input type="text" id="wineLocation" placeholder="Ex: Clayette 3, Rangée du fond" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--background-cards); color:var(--text-primary);" />
-
           <label>Code-barres EAN</label>
           <input type="text" id="wineBarcode" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--background-cards); color:var(--text-primary);" />
-
           <div style="display:flex; gap:10px;">
             <div style="flex:1;">
               <label>Prêt à boire (À partir de)</label>
@@ -208,7 +196,6 @@
               <input type="date" id="wineDrinkTo" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--background-cards); color:var(--text-primary); box-sizing:border-box;" />
             </div>
           </div>
-
           <div style="display:flex; gap:10px; margin-top:15px;">
             <button type="submit" class="btn" style="flex:2; background:#10b981;">Sauvegarder la bouteille</button>
             <button type="button" class="btn" style="flex:1; background:#4b5563;" onclick="switchView('view-list')">Annuler</button>
@@ -216,7 +203,6 @@
         </form>
       </div>
     </section>
-
   </main>
 
   <nav id="bottomNav">
@@ -229,19 +215,16 @@
   </nav>
 
   <script src="db.js"></script>
-
-<script src="ai.js"></script>
-<script src="ui.js"></script>
-
-<script src="inventory.js"></script>
-<script src="shop.js"></script>
-<script src="scan.js"></script>
-<script src="settings.js"></script>
-<script src="stats.js"></script>
-<script src="alerts.js"></script>
-<script src="pdf.js"></script>
-<script src="voice.js"></script>
-
-<script src="app.js"></script>
+  <script src="ai.js"></script>
+  <script src="ui.js"></script>
+  <script src="inventory.js"></script>
+  <script src="shop.js"></script>
+  <script src="scan.js"></script>
+  <script src="settings.js"></script>
+  <script src="stats.js"></script>
+  <script src="alerts.js"></script>
+  <script src="pdf.js"></script>
+  <script src="voice.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

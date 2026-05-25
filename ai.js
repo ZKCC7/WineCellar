@@ -97,4 +97,50 @@ async function proposerAccordsMetsVins(wine, btnElement) {
   }
 
   containerAccord.innerHTML = `<div class="ai-sommelier-content">${reponse}</div>`;
+};
+/**
+ * Fonction manquante : appelée par le bouton "Remplir par IA"
+ * Elle coordonne l'extraction OCR et l'appel à l'API Gemini.
+ */
+async function assistantRemplirFormulaire() {
+    const btn = document.getElementById('btnAiFill');
+    const originalText = btn.innerHTML;
+    
+    try {
+        btn.innerHTML = "🔍 Analyse en cours...";
+        btn.disabled = true;
+
+        // 1. Récupérer l'image (si un fichier est sélectionné dans le scan)
+        const fileInput = document.getElementById('scanInput');
+        if (!fileInput || !fileInput.files[0]) {
+            throw new Error("Veuillez d'abord scanner ou sélectionner une étiquette.");
+        }
+
+        // 2. OCR avec Tesseract (Utilisation globale via window.Tesseract)
+        const { data: { text } } = await Tesseract.recognize(fileInput.files[0], 'fra');
+        console.log("Texte extrait :", text);
+
+        // 3. Appel à l'API Gemini pour transformer le texte en données structurées
+        const prompt = `Analyse le texte suivant d'une étiquette de vin et extrais en format JSON (cuvee, domain, vintage, type, appellation, region) : ${text}`;
+        const reponseJson = await appelerGemini(prompt);
+
+        if (reponseJson) {
+            // 4. Remplissage automatique des champs du formulaire par ID
+            const data = JSON.parse(reponseJson);
+            document.getElementById('wineCuvee').value = data.cuvee || "";
+            document.getElementById('wineDomain').value = data.domain || "";
+            document.getElementById('wineVintage').value = data.vintage || "";
+            // ... (complétez les autres champs)
+            alert("Formulaire rempli avec succès !");
+        }
+    } catch (error) {
+        console.error("Erreur IA :", error);
+        alert("Erreur : " + error.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
 }
+
+// EXPOSITION GLOBALE (indispensable pour le onclick du HTML)
+window.assistantRemplirFormulaire = assistantRemplirFormulaire;
