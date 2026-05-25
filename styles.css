@@ -141,17 +141,28 @@ body.light .pill {
   z-index: 9;
 }
 
+/* ==========================================
+   CORRECTION DU MENU SIDEBAR (BANDE GAUCHE)
+   ========================================== */
 #sideMenu {
   position: fixed;
   top: 0;
-  left: -260px;
+  left: -270px; /* Légèrement augmenté pour être sûr qu'il sorte de l'écran */
   width: 260px;
   height: 100%;
   background: #1b1b1b;
   padding: 1rem;
-  transition: 0.3s;
-  z-index: 10;
+  transition: transform 0.3s ease, visibility 0.3s;
+  z-index: 9999; /* Reste bien au-dessus de tout */
   overflow-y: auto;
+  box-sizing: border-box;
+  visibility: hidden; /* Masque complètement la bande résiduelle */
+}
+
+/* Classe active qui sera gérée par le JavaScript */
+#sideMenu.open {
+  transform: translateX(270px);
+  visibility: visible;
 }
 
 body.light #sideMenu {

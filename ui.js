@@ -1,5 +1,5 @@
 /* ============================================================
-   ui.js — Gestion de l’interface et de la navigation
+   ui.js — Gestion de l’interface, Navigation et Fiches Vins
    ============================================================ */
 
 function $(id) {
@@ -7,7 +7,7 @@ function $(id) {
 }
 
 /* ------------------------------------------------------------
-   MENU HAMBURGER
+   MENU HAMBURGER (CORRIGÉ SANS BANDE RESTANTE)
 ------------------------------------------------------------ */
 const menuBtn = $("menuBtn");
 const menuOverlay = $("menuOverlay");
@@ -17,13 +17,15 @@ if (menuBtn) menuBtn.addEventListener("click", toggleMenu);
 if (menuOverlay) menuOverlay.addEventListener("click", toggleMenu);
 
 function toggleMenu() {
-  const isOpen = sideMenu.style.left === "0px";
+  if (!sideMenu) return;
+  
+  const isOpen = sideMenu.classList.contains("open");
   if (isOpen) {
-    sideMenu.style.left = "-260px";
-    menuOverlay.style.display = "none";
+    sideMenu.classList.remove("open");
+    if (menuOverlay) menuOverlay.style.display = "none";
   } else {
-    sideMenu.style.left = "0px";
-    menuOverlay.style.display = "block";
+    sideMenu.classList.add("open");
+    if (menuOverlay) menuOverlay.style.display = "block";
   }
 }
 
@@ -37,10 +39,13 @@ function openScreen(screenId) {
     targetScreen.classList.add("visible");
   }
 
-  if (sideMenu) sideMenu.style.left = "-260px";
+  // Fermeture automatique du menu hamburger après clic
+  if (sideMenu) sideMenu.classList.remove("open");
   if (menuOverlay) menuOverlay.style.display = "none";
 
-  if (screenId === "view-list" && typeof loadInventory === "function") loadInventory();
+  // Rechargements à la volée selon l'écran demandé
+  if (screenId === "view-list" && typeof renderWineList === "function") renderWineList();
+  if (screenId === "view-inventory" && typeof loadInventory === "function") loadInventory();
   if (screenId === "view-alerts" && typeof loadAlerts === "function") loadAlerts();
   if (screenId === "view-stats" && typeof loadStats === "function") loadStats();
   if (screenId === "view-shop" && typeof loadShopList === "function") loadShopList();
@@ -59,9 +64,9 @@ async function renderWineList(winesToRender) {
 
   if (wines.length === 0) {
     container.innerHTML = `
-      <div class="card" style="text-align:center; color:var(--text-muted); padding:30px;">
+      <div class="card" style="text-align:center; color:#aaa; padding:30px;">
         <p style="font-size:2.5rem; margin-bottom:10px;">🍷</p>
-        <p>Votre cave est vide ou aucun vin ne correspond à votre recherche.</p>
+        <p>Votre cave est vide ou aucun vin ne correspond.</p>
       </div>
     `;
     return;
@@ -75,23 +80,22 @@ async function renderWineList(winesToRender) {
         <div class="wine-header">
           <div>
             <span class="badge badge-${(wine.identity?.type || 'Rouge').toLowerCase()}">${wine.identity?.type || 'Rouge'}</span>
-            <h3 class="wine-title">${wine.identity?.cuvee || 'Sans nom'}</h3>
-            <p class="wine-subtitle">${wine.identity?.domain || 'Domaine inconnu'} - ${wine.identity?.vintage || 'N.V.'}</p>
+            <h3 class="wine-title" style="margin: 5px 0;">${wine.identity?.cuvee || 'Sans nom'}</h3>
+            <p class="wine-subtitle" style="margin: 0; color:#aaa;">${wine.identity?.domain || 'Domaine inconnu'} - ${wine.identity?.vintage || 'N.V.'}</p>
           </div>
-          <div class="wine-qty-badge">
-            <span class="qty-val">${wine.quantity || 0}</span>
+          <div class="wine-qty-badge" style="background: #6b1d2f; padding: 5px 10px; border-radius: 6px;">
+            <span class="qty-val" style="font-weight: bold;">${wine.quantity || 0}</span>
           </div>
         </div>
         
-        <div class="wine-meta">
-          <span>📍 ${wine.location || 'Non localisé'}</span>
-          <span>🍼 ${wine.size || '75cl'}</span>
+        <div class="wine-meta" style="margin-top: 10px; font-size: 0.85rem; color: #bbb;">
+          <span>📍 ${wine.location || 'Non localisé'}</span> | <span>🍼 ${wine.size || '75cl'}</span>
         </div>
 
-        <div class="card-actions-inline" style="margin-top: 12px;">
-          <button class="btn-secondary" onclick="showWineDetail('${wine.id}')">🔍 Détails & IA</button>
-          <button class="btn-secondary" onclick="quickIncrement('${wine.id}', 1)">➕</button>
-          <button class="btn-secondary" onclick="quickIncrement('${wine.id}', -1)">➖</button>
+        <div class="card-actions-inline" style="margin-top: 12px; display: flex; gap: 8px;">
+          <button class="btn" style="flex: 2; font-size: 0.85rem; padding: 6px; background:#4b5563;" onclick="showWineDetail('${wine.id}')">🔍 Fiche & IA</button>
+          <button class="btn" style="flex: 1; padding: 6px; background:#10b981;" onclick="quickIncrement('${wine.id}', 1)">➕</button>
+          <button class="btn" style="flex: 1; padding: 6px; background:#ef4444;" onclick="quickIncrement('${wine.id}', -1)">➖</button>
         </div>
       </div>
     `;
@@ -124,7 +128,7 @@ async function quickIncrement(id, amount) {
 }
 
 /* ------------------------------------------------------------
-   AFFICHAGE DU DÉTAIL D'UNE BOUTEILLE (AVEC INTÉGRATION IA)
+   AFFICHAGE DE LA FICHE DÉTAILLÉE (AVEC PHOTO INTEGRÉE)
 ------------------------------------------------------------ */
 async function showWineDetail(id) {
   const wine = await dbGetWine(id);
@@ -134,36 +138,45 @@ async function showWineDetail(id) {
   const content = $("wineDetailContent");
   if (!content) return;
 
+  const wineTypeColor = (wine.identity?.type || 'Rouge').toLowerCase();
+  
+  // URL d'illustration par défaut de haute qualité (Unsplash) si aucune photo personnalisée n'est stockée
+  const photoVin = wine.imageUrl || `https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=500&q=80`;
+
   content.innerHTML = `
-    <div style="text-align: center; margin-bottom: 20px;">
-      <span class="badge badge-${(wine.identity?.type || 'Rouge').toLowerCase()}" style="font-size:1rem; padding:6px 14px;">
+    <div style="width:100%; height:180px; overflow:hidden; border-radius:8px; margin-bottom:15px; position:relative; background:#222;">
+      <img src="${photoVin}" alt="Photo de la bouteille" style="width:100%; height:100%; object-fit:cover; opacity:0.85;" />
+      <span class="badge badge-${wineTypeColor}" style="position:absolute; bottom:10px; left:10px; font-size:0.85rem; padding:4px 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.6);">
         ${wine.identity?.type || 'Rouge'}
       </span>
-      <h2 style="margin: 10px 0 5px 0; color: var(--primary); font-size: 1.6rem;">${wine.identity?.cuvee || 'Sans nom'}</h2>
-      <p style="margin: 0; font-weight: 600; color: var(--text-main);">${wine.identity?.domain || 'Domaine inconnu'}</p>
     </div>
 
-    <table class="detail-table" style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
-      <tr><td><b>Appellation :</b></td><td>${wine.identity?.appellation || 'Non renseignée'}</td></tr>
-      <tr><td><b>Région :</b></td><td>${wine.identity?.region || 'Non renseignée'}</td></tr>
-      <tr><td><b>Pays :</b></td><td>${wine.identity?.country || 'France'}</td></tr>
-      <tr><td><b>Millésime :</b></td><td>${wine.identity?.vintage || 'N.V.'}</td></tr>
-      <tr><td><b>Stock actuel :</b></td><td><b>${wine.quantity || 0}</b> bouteille(s) (${wine.size || '75cl'})</td></tr>
-      <tr><td><b>Emplacement :</b></td><td>${wine.location || 'Non spécifié'}</td></tr>
-      <tr><td><b>Apogée :</b></td><td>Entre ${wine.aging?.drinkFrom || '?'} et ${wine.aging?.drinkTo || '?'}</td></tr>
+    <div style="text-align: center; margin-bottom: 15px;">
+      <h2 style="margin: 5px 0; color: #ffb347; font-size: 1.5rem;">${wine.identity?.cuvee || 'Sans nom'}</h2>
+      <p style="margin: 0; font-weight: 600; color: #fff;">${wine.identity?.domain || 'Domaine inconnu'}</p>
+    </div>
+
+    <table class="detail-table" style="width:100%; border-collapse: collapse; margin-bottom: 15px; color: #eee; font-size:0.9rem;">
+      <tr style="border-bottom: 1px solid #333;"><td style="padding:6px 0;"><b>Appellation :</b></td><td>${wine.identity?.appellation || 'Non renseignée'}</td></tr>
+      <tr style="border-bottom: 1px solid #333;"><td style="padding:6px 0;"><b>Région :</b></td><td>${wine.identity?.region || 'Non renseignée'}</td></tr>
+      <tr style="border-bottom: 1px solid #333;"><td style="padding:6px 0;"><b>Pays :</b></td><td>${wine.identity?.country || 'France'}</td></tr>
+      <tr style="border-bottom: 1px solid #333;"><td style="padding:6px 0;"><b>Millésime :</b></td><td>${wine.identity?.vintage || 'N.V.'}</td></tr>
+      <tr style="border-bottom: 1px solid #333;"><td style="padding:6px 0;"><b>Emplacement :</b></td><td>${wine.location || 'Non spécifié'}</td></tr>
+      <tr style="border-bottom: 1px solid #333;"><td style="padding:6px 0;"><b>Contenance :</b></td><td>${wine.size || '75cl'}</td></tr>
+      <tr style="border-bottom: 1px solid #333;"><td style="padding:6px 0;"><b>Apogée :</b></td><td>Entre ${wine.aging?.drinkFrom || '?'} et ${wine.aging?.drinkTo || '?'}</td></tr>
     </table>
 
-    <div style="margin-top: 20px; padding: 12px; background: #1e1e2f; border-radius: 8px; border: 1px solid #333;">
-      <h4 style="margin: 0 0 10px 0; color: #60a5fa; display: flex; align-items: center; gap: 6px;">🤖 Assistant Sommelier</h4>
-      <button class="btn" style="width:100%; background: #2563eb; font-size: 0.9rem;" id="btnMetsIa" onclick="typeof associerMetsIA === 'function' ? associerMetsIA('${wine.id}') : alert('Module IA non chargé')">
-        🔍 Trouver des idées d'accords
+    <div style="margin-top: 15px; padding: 12px; background: #222; border-radius: 8px; border: 1px solid #444;">
+      <h4 style="margin: 0 0 8px 0; color: #60a5fa; display: flex; align-items: center; gap: 6px; font-size:0.95rem;">🤖 Accords Mets-Vins</h4>
+      <button class="btn" style="width:100%; background: #2563eb; font-size: 0.85rem; padding:8px;" id="btnMetsIa" onclick="typeof associerMetsIA === 'function' ? associerMetsIA('${wine.id}') : alert('Module IA indisponible')">
+        🔍 Suggérer des plats complémentaires
       </button>
-      <div id="accordMetsIaResult" style="margin-top: 10px; color: #e5e7eb; font-size: 0.9rem;"></div>
+      <div id="accordMetsIaResult" style="margin-top: 10px; color: #ddd; font-size: 0.85rem; line-height:1.4;"></div>
     </div>
     
-    <div style="display:flex; gap: 10px; margin-top: 20px;">
-      <button class="btn" style="flex:1; background: #4b5563;" onclick="closeWineDetail(); editWine('${wine.id}');">✏️ Modifier</button>
-      <button class="btn" style="flex:1; background:#ef4444;" onclick="closeWineDetail(); deleteWineFromInv('${wine.id}');">🗑️ Supprimer</button>
+    <div style="display:flex; gap: 10px; margin-top: 15px;">
+      <button class="btn" style="flex:1; background: #4b5563; padding:8px;" onclick="closeWineDetail(); editWine('${wine.id}');">✏️ Modifier</button>
+      <button class="btn" style="flex:1; background:#ef4444; padding:8px;" onclick="closeWineDetail(); deleteWineFromInv('${wine.id}');">🗑️ Supprimer</button>
     </div>
   `;
 
@@ -184,12 +197,12 @@ function createDetailModal() {
   modal.style.left = "0";
   modal.style.width = "100%";
   modal.style.height = "100%";
-  modal.style.backgroundColor = "rgba(0,0,0,0.7)";
-  modal.style.zIndex = "1000";
+  modal.style.backgroundColor = "rgba(0,0,0,0.85)";
+  modal.style.zIndex = "10000";
 
   modal.innerHTML = `
-    <div class="modal-content" style="background: #1a1a1a; color: #fff; max-width: 450px; margin: 40px auto; padding: 20px; border-radius: 12px; position: relative; border: 1px solid #333;">
-      <span class="close-modal" onclick="closeWineDetail()" style="position: absolute; top: 15px; right: 20px; font-size: 1.6rem; cursor: pointer; color: #aaa;">&times;</span>
+    <div class="modal-content" style="background: #111; color: #fff; max-width: 420px; margin: 30px auto; padding: 20px; border-radius: 12px; position: relative; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+      <span class="close-modal" onclick="closeWineDetail()" style="position: absolute; top: 10px; right: 15px; font-size: 1.8rem; cursor: pointer; color: #999; z-index:10;">&times;</span>
       <div id="wineDetailContent"></div>
     </div>
   `;
@@ -199,54 +212,43 @@ function createDetailModal() {
 }
 
 /* ------------------------------------------------------------
-   ASSISTANT FORMULAIRE PAR CONVERSATION (IA RAPIDE)
+   ASSISTANT CONVERSATIONNEL RAPIDE
 ------------------------------------------------------------ */
 function assistantRemplirFormulaire() {
-  const texte = prompt("Entrez la description brute ou l'étiquette (ex: 'Château Margaux 2015 rouge') :");
+  const texte = prompt("Entrez les informations brutes (Ex: 'Château Margaux 2018 rouge Bordeaux') :");
   if (!texte || !texte.trim()) return;
 
   const btn = document.getElementById("btnAiFill");
-  const originalText = btn ? btn.innerHTML : "🪄 Sainte-IA";
   if (btn) {
     btn.innerHTML = "⚡ Analyse en cours...";
     btn.disabled = true;
   }
 
-  const promptConstruct = `Analyse ce texte et retourne UNIQUEMENT un objet JSON valide sans enrobage markdown :
-  {"cuvee": string, "domain": string, "vintage": number, "type": "Rouge"|"Blanc"|"Rosé"|"Effervescent", "appellation": string, "region": string, "country": string}.
-  Texte : "${texte}"`;
+  const promptConstruct = `Retourne un JSON brut sans markdown : {"cuvee":"","domain":"","vintage":2018,"type":"Rouge","appellation":"","region":"","country":"France"} basé sur : "${texte}"`;
 
   if (typeof appelerGemini === "function") {
     appelerGemini(promptConstruct).then(reponse => {
-      if (btn) {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-      }
+      if (btn) { btn.innerHTML = "🪄 Ajouter via l'assistant IA"; btn.disabled = false; }
       try {
         const cleanJson = reponse.replace(/```json/g, "").replace(/```/g, "").trim();
         const data = JSON.parse(cleanJson);
 
         openScreen("view-add");
-        if (data.cuvee) document.getElementById("wineCuvee").value = data.cuvee;
-        if (data.domain) document.getElementById("wineDomain").value = data.domain;
-        if (data.vintage) document.getElementById("wineVintage").value = data.vintage;
-        if (data.type) document.getElementById("wineType").value = data.type;
-        
-        alert("✨ Formulaire pré-rempli !");
+        if (data.cuvee) $("wineCuvee").value = data.cuvee;
+        if (data.domain) $("wineDomain").value = data.domain;
+        if (data.vintage) $("wineVintage").value = data.vintage;
+        if (data.type) $("wineType").value = data.type;
       } catch (e) {
-        alert("L'IA n'a pas pu structurer les données.");
+        alert("Impossible de structurer le texte envoyé.");
       }
     }).catch(() => {
-      if (btn) {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-      }
+      if (btn) { btn.innerHTML = "🪄 Ajouter via l'assistant IA"; btn.disabled = false; }
     });
   }
 }
 
 /* ------------------------------------------------------------
-   INITIALISATION
+   INITIALISATION DES RECHERCHES
 ------------------------------------------------------------ */
 document.addEventListener("DOMContentLoaded", () => {
   renderWineList();
